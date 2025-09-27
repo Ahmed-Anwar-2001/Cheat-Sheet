@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agents Cheat Sheet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #eef0f4;
+            color: #334155;
+        }
+
+        /* Claymorphism Styles */
+        .clay-card {
+            background-color: #eef0f4;
+            border-radius: 20px;
+            box-shadow: 8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .clay-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 12px 12px 24px #d1d9e6, -12px -12px 24px #ffffff;
+        }
+        
+        .clay-card-inset {
+             background-color: #eef0f4;
+             border-radius: 20px;
+             box-shadow: inset 8px 8px 16px #d1d9e6, inset -8px -8px 16px #ffffff;
+        }
+
+        .clay-button {
+            background-color: #eef0f4;
+            border-radius: 10px;
+            box-shadow: 4px 4px 8px #d1d9e6, -4px -4px 8px #ffffff;
+            transition: all 0.2s ease-in-out;
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: #334155;
+        }
+        .clay-button:hover {
+            box-shadow: 2px 2px 4px #d1d9e6, -2px -2px 4px #ffffff;
+            transform: translateY(-2px);
+            color: #1e293b;
+        }
+        .clay-button:active {
+            box-shadow: inset 2px 2px 4px #d1d9e6, inset -2px -2px 4px #ffffff;
+            transform: translateY(0);
+        }
+
+        /* Presentation Section Styling */
+        .slide {
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            border-bottom: 1px solid #d1d9e6;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .slide.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .slide:last-child {
+            border-bottom: none;
+        }
+
+        h1, h2, h3 {
+            font-weight: 700;
+        }
+        
+        .content-grid {
+            display: grid;
+            gap: 2rem;
+            width: 100%;
+            max-width: 1200px;
+        }
+        
+        /* Table hover effect */
+        tbody tr {
+            transition: background-color 0.2s ease-in-out;
+        }
+        tbody tr:hover {
+            background-color: #e6eaf1;
+        }
+
+
+
+        .clay-base {
+            background: #eef0f4;
+            border-radius: 30px;
+            /* Updated to consistent inset shadow */
+            box-shadow: 
+                inset 8px 8px 16px #d1d9e6, 
+                inset -8px -8px 16px #ffffff;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .clay-card {
+            background: #eef0f4;
+            border-radius: 20px;
+            /* Updated shadow style */
+            box-shadow: 
+                8px 8px 16px #d1d9e6, 
+                -8px -8px 16px #ffffff;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .clay-card-inner {
+            background: #eef0f4;
+            border-radius: 15px;
+            /* Updated inset shadow style */
+            box-shadow: 
+                inset 4px 4px 8px #d1d9e6, 
+                inset -4px -4px 8px #ffffff;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .clay-card:hover {
+            transform: translateY(-8px);
+            /* Updated hover shadow style */
+            box-shadow: 
+                12px 12px 24px #d1d9e6, 
+                -12px -12px 24px #ffffff;
+        }
+        
+        .clay-card-inner:hover {
+             transform: scale(1.03);
+        }
+
+        .clay-icon {
+            width: 50px;
+            height: 50px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4a90e2;
+        }
+
+        .progress-bar-container {
+            height: 10px;
+            border-radius: 5px;
+        }
+        .progress-bar {
+            height: 100%;
+            border-radius: 5px;
+            animation: fill-bar 2s ease-out forwards;
+        }
+        
+        @keyframes fill-bar {
+            from { width: 0%; }
+        }
+        
+        .op-step {
+            position: relative;
+            padding-left: 30px;
+        }
+        .op-step:before {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #4a90e2;
+            box-shadow: 0 0 5px #4a90e2;
+        }
+        .op-step:not(:last-child):after {
+            content: '';
+            position: absolute;
+            left: 9px;
+            top: 50%;
+            width: 2px;
+            height: 100%;
+            background-color: #d1d9e6; /* Shadow color, consistent */
+        }
+
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="sticky top-0 z-10 p-4 clay-card flex justify-center items-center">
+        <h1 class="text-xl font-bold text-slate-700">AI Agents</h1>
+    </header>
+
+    <main>
+        <section class="slide text-center">
+            <div class="max-w-4xl">
+                <h1 class="text-5xl md:text-7xl font-bold text-slate-800 mb-4">Explore AI Agents</h1>
+                <p class="text-xl md:text-2xl text-slate-600 mb-8">Mastering the Core Competencies for the Future of Automation</p>
+                <div class="clay-card-inset p-6 inline-block">
+                    <p class="text-lg font-semibold">Ahmed Anwar</p>
+                    <p class="text-md text-slate-500">AI Engineer, Spectrum IT Solutions Limited</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide">
+            <div class="clay-card p-8 md:p-12 w-full max-w-4xl">
+                <h2 class="text-4xl font-bold text-center mb-8">Content</h2>
+                <ul class="space-y-4 text-lg text-slate-600 list-disc list-inside">
+                    <li>What is an AI Agent?</li>
+                    <li>Agent core concepts & anatomy</li>
+                    <li>Key research papers</li>
+                    <li>Agent architectures & patterns (single vs multi-agent, tool use, memory, etc.)</li>
+                    <li>Industry use cases & case study</li>
+                    <li>How to start & build your first agentic project</li>
+                    <li>Risks, safety, evaluation, and operationalization</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="slide">
+             <div class="content-grid md:grid-cols-2 items-center">
+                <div class="clay-card p-8 text-center">
+                    <h2 class="text-4xl font-bold mb-4">AI Agent</h2>
+                    <p class="text-xl">An AI model capable of reasoning, planning, and interacting with its environment to achieve specific goals autonomously.</p>
+                </div>
+                <img src="images/baymx.png" alt="Baymax helping a child" class="rounded-2xl shadow-lg w-full max-w-md mx-auto transition-transform duration-300 hover:scale-105">
+            </div>
+        </section>
+        
+        <section class="slide">
+            <div class="w-full max-w-6xl text-center">
+                <h2 class="text-4xl font-bold mb-12">An AI Agent in Action: The Baymax Story</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="clay-card p-6 flex flex-col items-center">
+                        <img src="images/baymax.png" alt="Baymax reasoning" class="rounded-lg mb-4">
+                        <h3 class="text-xl font-semibold">1. Get User Input</h3>
+                        <p>The agent receives the user's input.</p>
+                    </div>
+                    <div class="clay-card p-6 flex flex-col items-center">
+                        <img src="images/reasoning.png" alt="Baymax reasoning" class="rounded-lg mb-4">
+                        <h3 class="text-xl font-semibold">2. Reasoning & Analysis</h3>
+                        <p>The agent perceives the situation and analyzes the user's input.</p>
+                    </div>
+                    <div class="clay-card p-6 flex flex-col items-center">
+                        <img src="images/Planning.png" alt="Baymax planning" class="rounded-lg mb-4">
+                        <h3 class="text-xl font-semibold">3. Planning</h3>
+                        <p>It formulates a multi-step plan to address the problem.</p>
+                    </div>
+                    <div class="clay-card p-6 flex flex-col items-center">
+                        <img src="images/action2.png" alt="Baymax taking action part 1" class="rounded-lg mb-4">
+                        <h3 class="text-xl font-semibold">4. Action (Step 1)</h3>
+                        <p>Executes the first step of the plan using available tools.</p>
+                    </div>
+                    <div class="clay-card p-6 flex flex-col items-center">
+                        <img src="images/action.png" alt="Baymax taking action part 2" class="rounded-lg mb-4">
+                        <h3 class="text-xl font-semibold">5. Action (Step 2)</h3>
+                        <p>Continues with the next step, adapting as needed.</p>
+                    </div>
+                    <div class="clay-card p-6 flex flex-col items-center">
+                        <img src="images/happy.png" alt="Happy child with Baymax" class="rounded-lg mb-4">
+                        <h3 class="text-xl font-semibold">6. Goal Achieved</h3>
+                        <p>The task is complete, and the user is satisfied.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide">
+             <div class="content-grid md:grid-cols-2 items-center">
+                <div class="flex flex-col items-center">
+                    <h3 class="text-3xl font-bold mb-6">Agent Workflow</h3>
+                    <img src="images/workflow.png" alt="AI Agent Workflow" class="rounded-2xl shadow-lg w-full transition-transform duration-300 hover:scale-105">
+                </div>
+                 <div class="flex flex-col items-center">
+                    <h3 class="text-3xl font-bold mb-6">Agent Architecture</h3>
+                    <img src="images/arch.png" alt="AI Agent Architecture" class="rounded-2xl shadow-lg w-full transition-transform duration-300 hover:scale-105">
+                </div>
+            </div>
+        </section>
+
+        <section class="slide">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold">Anatomy of an AI Agent</h2>
+                <p class="text-xl text-slate-600 mt-2">Breaking down the core components of an intelligent agent.</p>
+            </div>
+            <div class="content-grid md:grid-cols-2">
+                <div class="clay-card p-8">
+                    <h3 class="text-3xl font-semibold mb-4">The Brain: AI Model (LLM)</h3>
+                    <p class="mb-4">This is where all the thinking happens. The AI model handles reasoning and planning, deciding which actions to take based on the situation.</p>
+                    <h4 class="font-semibold text-lg mb-2">Key Functions:</h4>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Reasoning</li>
+                        <li>Planning</li>
+                        <li>Decision Making</li>
+                    </ul>
+                </div>
+                <div class="clay-card p-8">
+                    <h3 class="text-3xl font-semibold mb-4">The Body: Capabilities & Tools</h3>
+                    <p class="mb-4">This part represents everything the Agent is equipped to do. The scope of possible actions depends entirely on its available tools and capabilities.</p>
+                     <h4 class="font-semibold text-lg mb-2">Human Analogy:</h4>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Equipped with legs → Can perform 'Walk', 'Run'</li>
+                        <li>Not equipped with wings → Cannot perform 'Fly'</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide">
+             <div class="content-grid md:grid-cols-2 items-center">
+                <div class="clay-card p-8">
+                    <h2 class="text-4xl font-bold mb-4">LLM (Large Language Model)</h2>
+                    <p>An LLM is a type of AI model that excels at understanding and generating human language. They are trained on vast amounts of text data, allowing them to learn patterns, structure, and even nuance in language. These models typically consist of many millions of parameters.</p>
+                    <p class="mt-4">Most LLMs nowadays are built on the Transformer architecture—a deep learning architecture based on the “Attention” algorithm.</p>
+                </div>
+                <div class="p-4">
+                    <img src="images/Full_Transformer.png" alt="Transformer Architecture Diagram" class="rounded-2xl shadow-lg w-full clay-card p-2 transition-transform duration-300 hover:scale-105">
+                     <p class="text-xs text-center mt-2 text-slate-500">Source: Vaswani, A., et al. (2017). "Attention Is All You Need".</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="slide">
+             <div class="clay-card p-8 md:p-12 w-full max-w-5xl">
+                <h2 class="text-4xl font-bold text-center mb-8">Latest Flagship LLMs</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="border-b-2 border-slate-300">
+                            <tr class="text-slate-700">
+                                <th class="p-4">Organization</th>
+                                <th class="p-4">Latest Flagship LLM</th>
+                                <th class="p-4">Context Window</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-slate-300">
+                                <td class="p-4 font-semibold">OpenAI</td>
+                                <td class="p-4">GPT-5</td>
+                                <td class="p-4">400,000 tokens</td>
+                            </tr>
+                             <tr class="border-b border-slate-300">
+                                <td class="p-4 font-semibold">Google</td>
+                                <td class="p-4">Gemini 2.5 Pro</td>
+                                <td class="p-4">1,000,000 tokens</td>
+                            </tr>
+                             <tr class="border-b border-slate-300">
+                                <td class="p-4 font-semibold">Anthropic</td>
+                                <td class="p-4">Claude Sonnet</td>
+                                <td class="p-4">1,000,000 tokens</td>
+                            </tr>
+                            <tr class="border-b border-slate-300">
+                                <td class="p-4 font-semibold">Meta AI</td>
+                                <td class="p-4">Llama 4 Scout</td>
+                                <td class="p-4">10,000,000 tokens</td>
+                            </tr>
+                             <tr>
+                                <td class="p-4 font-semibold">xAI</td>
+                                <td class="p-4">Grok-4</td>
+                                <td class="p-4">2,000,000 tokens</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        
+        <section class="slide">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold">Key Concepts & Research</h2>
+                <p class="text-xl text-slate-600 mt-2">Foundational ideas that power modern AI agents.</p>
+            </div>
+             <div class="content-grid md:grid-cols-2 lg:grid-cols-3">
+                 <div class="clay-card p-8">
+                     <h3 class="text-2xl font-semibold mb-2">Chain of Thought (CoT)</h3>
+                     <p>A process where LLMs explicitly reason step by step, mimicking a human thought process. Instead of jumping to an answer, it writes down the intermediate steps. This improves reasoning accuracy for complex problems and makes the agent's thinking process transparent.</p>
+                 </div>
+                 <div class="clay-card p-8">
+                     <h3 class="text-2xl font-semibold mb-2">Tree of Thought (ToT)</h3>
+                     <p>Generalizes CoT by exploring multiple different reasoning paths at once, modeling problem-solving as searching through a tree. It allows the model to self-correct by backtracking from dead-ends, leading to more robust problem-solving.</p>
+                 </div>
+                  <div class="clay-card p-8">
+                     <h3 class="text-2xl font-semibold mb-2">ReAct: Reasoning + Acting</h3>
+                     <p>A framework that combines reasoning and acting. The model generates both a thought (what to do next) and an action (a specific tool to use). This synergy allows the agent to interact with the world to gather more information, refining its reasoning as it goes (Thought -> Action -> Observation).</p>
+                 </div>
+                 <div class="clay-card p-8 col-span-1 md:col-span-3">
+                     <h3 class="text-2xl font-semibold mb-4 text-center">Key Research Papers</h3>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                         <div class="flex-1 clay-card-inset p-4">
+                             <h4 class="font-bold">Chain-of-Thought Prompting</h4>
+                             <p class="text-sm">Wei et al., 2022, Google Brain</p>
+                             <a href="https://arxiv.org/abs/2201.11903" target="_blank" class="text-blue-600 hover:underline">Read Paper &rarr;</a>
+                         </div>
+                         <div class="flex-1 clay-card-inset p-4">
+                             <h4 class="font-bold">ReAct: Synergizing Reasoning and Acting</h4>
+                             <p class="text-sm">Yao et al., 2022</p>
+                             <a href="https://arxiv.org/abs/2210.03629" target="_blank" class="text-blue-600 hover:underline">Read Paper &rarr;</a>
+                         </div>
+                         <div class="flex-1 clay-card-inset p-4">
+                            <h4 class="font-bold">Toolformer: Language Models Can Teach Themselves to Use Tools</h4>
+                            <p class="text-sm">Schick et al., 2023, Meta AI</p>
+                            <a href="https://arxiv.org/abs/2302.04761" target="_blank" class="text-blue-600 hover:underline">Read Paper &rarr;</a>
+                        </div>
+                        <div class="flex-1 clay-card-inset p-4">
+                            <h4 class="font-bold">Generative Agents: Interactive Simulacra of Human Behavior</h4>
+                            <p class="text-sm">Park et al., 2023, Stanford & Google</p>
+                            <a href="https://arxiv.org/abs/2304.03442" target="_blank" class="text-blue-600 hover:underline">Read Paper &rarr;</a>
+                        </div>
+                     </div>
+                 </div>
+             </div>
+        </section>
+        
+        <section class="slide">
+             <div class="content-grid md:grid-cols-2">
+                <div class="clay-card p-8">
+                    <h3 class="text-3xl font-semibold mb-4">What are Tools?</h3>
+                    <p class="mb-4">A Tool is a function or API given to the LLM that allows it to interact with the outside world. It gives the agent capabilities beyond text generation, enabling it to fetch information, perform calculations, or trigger external processes.</p>
+                     <ul class="list-disc list-inside space-y-2">
+                        <li><b>Web Search:</b> Fetch up-to-date information.</li>
+                        <li><b>Image Generation:</b> Create images from text.</li>
+                        <li><b>Retrieval:</b> Get information from a knowledge base.</li>
+                        <li><b>API Interface:</b> Interact with external services (GitHub, etc.).</li>
+                    </ul>
+                </div>
+                <div class="clay-card p-8">
+                    <h3 class="text-3xl font-semibold mb-4">Memory in AI Agents</h3>
+                    <p class="mb-4">Memory acts as the long-term knowledge store, allowing for continuity, personalization, and contextual reasoning across interactions. Without memory, each interaction is stateless and isolated.</p>
+                     <ul class="list-disc list-inside space-y-2">
+                        <li><b>Episodic:</b> Recalls past interactions (short-term memory).</li>
+                        <li><b>Semantic:</b> Facts and world knowledge (long-term memory).</li>
+                        <li><b>Procedural:</b> Stores skills and multi-step workflows.</li>
+                        <li><b>Externalized:</b> Using databases, vector stores for embeddings, etc.</li>
+                    </ul>
+                </div>
+             </div>
+        </section>
+
+        <section class="slide">
+             <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold">Single-Agent vs Multi-Agent Systems</h2>
+            </div>
+            <div class="content-grid md:grid-cols-2">
+                <div class="clay-card-inset p-8">
+                    <h3 class="text-2xl font-semibold mb-2">Single-Agent Systems</h3>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li>One LLM-based agent controlling all actions.</li>
+                        <li>Simpler to design, debug, & deploy.</li>
+                        <li>Strong for narrow tasks with clear scope.</li>
+                         <li>Good for prototypes & early adoption.</li>
+                    </ul>
+                </div>
+                <div class="clay-card-inset p-8">
+                    <h3 class="text-2xl font-semibold mb-2">Multi-Agent Systems</h3>
+                     <ul class="list-disc list-inside space-y-2">
+                        <li>Multiple agents with specialized roles.</li>
+                        <li>Can collaborate, negotiate, or compete.</li>
+                        <li>Enables scalability and division of labor for complex tasks.</li>
+                        <li>Used in complex simulations and workflows (e.g., software development).</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <section class="slide">
+            <h2 class="text-4xl font-bold text-center mb-8">Full Agentic Structure</h2>
+            <img src="images/arch2.png" alt="Full Agentic Structure Diagram" class="rounded-2xl shadow-lg max-w-2xl w-full clay-card p-4 transition-transform duration-300 hover:scale-105">
+        </section>
+        
+        <section class="slide">
+            <div class="text-center mb-12">
+                 <h2 class="text-4xl font-bold">Industry Use Cases of AI Agents</h2>
+            </div>
+            <div class="content-grid md:grid-cols-2 lg:grid-cols-3">
+                <div class="clay-card p-6">
+                    <h3 class="text-2xl font-semibold mb-2">✅ Customer Support</h3>
+                    <p class="mb-4">Automate responses to common queries, guide users through troubleshooting, and escalate complex issues to human agents, providing 24/7 support.</p>
+                    <a href="#" class="text-blue-600 hover:underline">Learn More &rarr;</a>
+                </div>
+                <div class="clay-card p-6">
+                    <h3 class="text-2xl font-semibold mb-2">✅ Healthcare</h3>
+                    <p class="mb-4">Assist in diagnostics by analyzing symptoms, manage patient scheduling, and provide personalized health information based on patient data.</p>
+                    <a href="#" class="text-blue-600 hover:underline">Learn More &rarr;</a>
+                </div>
+                 <div class="clay-card p-6">
+                    <h3 class="text-2xl font-semibold mb-2">✅ Finance</h3>
+                    <p class="mb-4">Act as robo-advisors for investment, automate fraud detection by analyzing transaction patterns, and assist in financial planning and analysis.</p>
+                    <a href="#" class="text-blue-600 hover:underline">Learn More &rarr;</a>
+                </div>
+                 <div class="clay-card p-6">
+                    <h3 class="text-2xl font-semibold mb-2">✅ E-commerce</h3>
+                    <p class="mb-4">Provide personalized shopping assistance, manage inventory by predicting demand, and automate order processing and tracking for customers.</p>
+                    <a href="#" class="text-blue-600 hover:underline">Learn More &rarr;</a>
+                </div>
+                <div class="clay-card p-6">
+                    <h3 class="text-2xl font-semibold mb-2">✅ Productivity</h3>
+                    <p class="mb-4">Automate repetitive tasks like scheduling meetings, summarizing documents, managing emails, and organizing project workflows.</p>
+                    <a href="#" class="text-blue-600 hover:underline">Learn More &rarr;</a>
+                </div>
+                <div class="clay-card-inset p-6 flex justify-center items-center text-center">
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-2">Add Your Use Case</h3>
+                        <p>This structure can be easily extended with more industry examples.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-800">Case Studies: Advanced AI Agents</h2>
+                <p class="text-lg text-gray-600 mt-2">A collection of trending and impactful AI agent-based systems.</p>
+            </div>
+            <div class="content-grid md:grid-cols-2 lg:grid-cols-3">
+                <!-- Initial Set -->
+                <div class="clay-card p-8">
+                    <h3 class="text-2xl font-semibold mb-2 text-gray-800">GitHub Copilot</h3>
+                    <p class="mb-4 text-gray-600">Acts as an AI pair programmer in the IDE. It uses the context of the code to provide suggestions, refactor complex blocks, and generate tests. It has been shown to boost developer productivity by 20-55%.</p>
+                    <a href="https://github.com/features/copilot" target="_blank" class="clay-button">Visit Site</a>
+                </div>
+                <div class="clay-card p-8">
+                    <h3 class="text-2xl font-semibold mb-2 text-gray-800">Lovable</h3>
+                    <p class="mb-4 text-gray-600">An AI app/agent platform to build full-stack apps and autonomous agents from natural language. It combines no-code generation with agentic capabilities to build, test, and deploy agents at scale for various business functions.</p>
+                    <a href="https://lovable.dev/" target="_blank" class="clay-button">Visit Site</a>
+                </div>
+                <div class="clay-card p-8">
+                    <h3 class="text-2xl font-semibold mb-2 text-gray-800">Bolt (bolt.new)</h3>
+                    <p class="mb-4 text-gray-600">An AI builder and coding agent. It allows users to generate, run, test, and deploy full-stack applications directly from a chat interface, demonstrating a powerful agentic Integrated Development Environment (IDE).</p>
+                    <a href="https://www.bolt.new/" target="_blank" class="clay-button">Visit Site</a>
+                </div>
+
+                <!-- Added Set -->
+                <div class="clay-card p-8">
+                    <h3 class="text-2xl font-semibold mb-2 text-gray-800">Devin (by Cognition)</h3>
+                    <p class="mb-4 text-gray-600">Touted as the first autonomous AI software engineer. Devin can handle entire development projects from a single prompt, including writing code, finding and fixing bugs, testing, and even deploying the final application.</p>
+                    <a href="https://www.cognition-labs.com/" target="_blank" class="clay-button">Visit Site</a>
+                </div>
+                <div class="clay-card p-8">
+                    <h3 class="text-2xl font-semibold mb-2 text-gray-800">Perplexity AI</h3>
+                    <p class="mb-4 text-gray-600">An AI-powered conversational "answer engine." Instead of just providing links, it directly answers user questions by synthesizing information from multiple web sources and providing citations. It acts as a research agent.</p>
+                    <a href="https://www.perplexity.ai/" target="_blank" class="clay-button">Visit Site</a>
+                </div>
+                <div class="clay-card p-8">
+                    <h3 class="text-2xl font-semibold mb-2 text-gray-800">MultiOn</h3>
+                    <p class="mb-4 text-gray-600">A web action agent that can automate multi-step tasks across different websites. It can be instructed to perform complex workflows like booking flights and adding them to a calendar, navigating web interfaces like a human.</p>
+                    <a href="https://www.multion.ai/" target="_blank" class="clay-button">Visit Site</a>
+                </div>
+                <div class="clay-card p-8">
+                    <h3 class="text-2xl font-semibold mb-2 text-gray-800">Cursor</h3>
+                    <p class="mb-4 text-gray-600">An AI-first code editor designed for AI-assisted development. It helps with codebase-wide questions, generating new features from specs, and performing complex refactors and migrations with deep contextual understanding.</p>
+                    <a href="https://cursor.sh/" target="_blank" class="clay-button">Visit Site</a>
+                </div>
+                <div class="clay-card p-8">
+                    <h3 class="text-2xl font-semibold mb-2 text-gray-800">Gamma</h3>
+                    <p class="mb-4 text-gray-600">An AI agent for content creation that generates entire presentations, documents, and webpages from a single prompt. It automates the design and layout process, acting as an AI design partner to create polished materials.</p>
+                    <a href="https://gamma.app/" target="_blank" class="clay-button">Visit Site</a>
+                </div>
+                <div class="clay-card p-8">
+                    <h3 class="text-2xl font-semibold mb-2 text-gray-800">Cognosys</h3>
+                    <p class="mb-4 text-gray-600">A powerful web research and task automation agent. It can browse the web, read articles, and synthesize the information into a comprehensive report based on a user's goal, automating business intelligence workflows.</p>
+                    <a href="https://cognosys.ai/" target="_blank" class="clay-button">Visit Site</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="slide text-center">
+             <div class="clay-card p-12 w-full max-w-4xl">
+                 <h2 class="text-4xl font-bold">How to get started with AI Agents?</h2>
+                 <p class="mt-4 text-lg">Explore popular frameworks to begin building your own agents. These libraries provide the building blocks like agent runtimes, tool integrations, and memory modules to accelerate your development.</p>
+                 <div class="mt-8 flex justify-center gap-4">
+                     <a href="https://www.langchain.com/" target="_blank" class="clay-button">LangChain</a>
+                     <a href="https://www.llamaindex.ai/" target="_blank" class="clay-button">LlamaIndex</a>
+                     <a href="https://microsoft.github.io/autogen/" target="_blank" class="clay-button">AutoGen</a>
+                 </div>
+            </div>
+        </section>
+
+        <section class="slide text-center">
+            <div class="w-full max-w-6xl">
+                <h2 class="text-4xl font-bold mb-8">Demo Notebooks & Resources</h2>
+                <div class="content-grid md:grid-cols-3">
+                    <div class="clay-card p-8">
+                        <h3 class="text-2xl font-semibold mb-2">Basic ReAct Agent</h3>
+                        <p class="mb-4">Learn how to build a simple agent that uses the ReAct framework for reasoning and acting with basic tools.</p>
+                        <a href="#" class="clay-button">View on GitHub</a>
+                    </div>
+                    <div class="clay-card p-8">
+                        <h3 class="text-2xl font-semibold mb-2">Multi-Agent Collaboration</h3>
+                        <p class="mb-4">Explore a setup where multiple specialized agents collaborate to solve a complex problem, such as writing and debugging code.</p>
+                        <a href="#" class="clay-button">View on GitHub</a>
+                    </div>
+                    <div class="clay-card p-8">
+                        <h3 class="text-2xl font-semibold mb-2">Agent with Custom Tools</h3>
+                        <p class="mb-4">A practical example of how to equip an agent with your own custom functions and APIs as tools.</p>
+                        <a href="#" class="clay-button">View on GitHub</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section class="slide">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Operationalizing AI Agents</h2>
+                <p class="text-md md:text-lg text-gray-600 mt-2">A Visual Framework for Responsible Deployment</p>
+            </div>
+
+            <!-- Main Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+
+                <!-- Risks & Safety Card -->
+                <div class="clay-card p-6 md:p-8">
+                    <div class="flex items-center mb-4">
+                        <div class="clay-icon clay-card-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" /></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 ml-4">Risks & Safety</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">Autonomous agents introduce complex risks that require proactive containment and value alignment.</p>
+                    <div class="space-y-4">
+                        <div class="clay-card-inner p-4">
+                            <h4 class="font-semibold text-gray-700">Security Vulnerabilities</h4>
+                            <p class="text-sm text-gray-500">Agents can be hijacked via prompt injection to exfiltrate data or perform malicious actions.</p>
+                        </div>
+                        <div class="clay-card-inner p-4">
+                            <h4 class="font-semibold text-gray-700">Unpredictable Behavior</h4>
+                            <p class="text-sm text-gray-500">Complex reasoning loops can lead to harmful emergent behaviors not anticipated by developers.</p>
+                        </div>
+                        <div class="clay-card-inner p-4">
+                            <h4 class="font-semibold text-gray-700">Value Misalignment</h4>
+                            <p class="text-sm text-gray-500">An agent may pursue a goal in a way that violates unstated human values, causing negative side effects.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Evaluation Card -->
+                <div class="clay-card p-6 md:p-8">
+                    <div class="flex items-center mb-4">
+                        <div class="clay-icon clay-card-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 ml-4">Evaluation</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">Assessing agents requires a multi-faceted approach beyond final outputs to ensure reliability.</p>
+                    <div class="space-y-4">
+                        <div class="clay-card-inner p-4">
+                            <h4 class="font-semibold text-gray-700">Capability Benchmarking</h4>
+                            <p class="text-sm text-gray-500">Testing performance on standardized tasks like SWE-bench for coding or ALFWorld for navigation.</p>
+                        </div>
+                        <div class="clay-card-inner p-4">
+                            <h4 class="font-semibold text-gray-700">Adversarial Testing (Red Teaming)</h4>
+                            <p class="text-sm text-gray-500">Proactively attempting to break the agent with tricky prompts and scenarios to find failure modes.</p>
+                        </div>
+                        <div class="clay-card-inner p-4">
+                            <h4 class="font-semibold text-gray-700">Human-in-the-Loop Feedback</h4>
+                            <p class="text-sm text-gray-500">Using human preference to score agent behavior, especially for subjective or creative tasks.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Operationalization Card -->
+                <div class="clay-card p-6 md:p-8 col-span-1 lg:col-span-2">
+                    <div class="flex items-center mb-4">
+                        <div class="clay-icon clay-card-inner">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 ml-4">Operationalization (AgentOps)</h3>
+                    </div>
+                    <p class="text-gray-600 mb-8">Deploying agents safely into production requires a robust lifecycle management and monitoring framework, known as AgentOps.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Column 1 -->
+                        <div class="clay-card-inner p-4">
+                            <h4 class="font-semibold text-gray-700 mb-2">1. Containment</h4>
+                            <div class="op-step"><strong>Guardrails:</strong> API budget limits, forbidden actions.</div>
+                            <div class="op-step"><strong>Sandboxing:</strong> Isolated execution environments.</div>
+                            <div class="op-step"><strong>Confirmations:</strong> Human approval for critical steps.</div>
+                        </div>
+                        <!-- Column 2 -->
+                        <div class="clay-card-inner p-4">
+                            <h4 class="font-semibold text-gray-700 mb-2">2. Monitoring</h4>
+                            <div class="op-step"><strong>Logging:</strong> Track reasoning, tool use, and outputs.</div>
+                            <div class="op-step"><strong>Observability:</strong> Real-time dashboards for agent actions.</div>
+                            <div class="op-step"><strong>Alerting:</strong> Anomaly detection for weird behavior.</div>
+                        </div>
+                        <!-- Column 3 -->
+                        <div class="clay-card-inner p-4">
+                            <h4 class="font-semibold text-gray-700 mb-2">3. Governance</h4>
+                            <div class="op-step"><strong>Lifecycle Mgmt:</strong> Versioning prompts, tools, models.</div>
+                            <div class="op-step"><strong>Oversight:</strong> Clear human accountability and intervention.</div>
+                            <div class="op-step"><strong>Rollbacks:</strong> Instantly revert to a previous stable version.</div>
+                        </div>
+                    </div>
+
+                    <!-- Animated Graph/Table Element -->
+                    <div class="mt-8 clay-base p-4">
+                        <h4 class="font-semibold text-center text-gray-700 mb-4">Agent Maturity vs. Autonomy</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm font-semibold text-gray-600 mb-1"><span>Tool User (Low Autonomy)</span><span>25%</span></div>
+                                <div class="progress-bar-container clay-base"><div class="progress-bar bg-blue-400" style="width: 25%;"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm font-semibold text-gray-600 mb-1"><span>Supervisor (Medium Autonomy)</span><span>55%</span></div>
+                                <div class="progress-bar-container clay-base"><div class="progress-bar bg-green-400" style="width: 55%;"></div></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm font-semibold text-gray-600 mb-1"><span>Autonomous Agent (High Autonomy)</span><span>80%</span></div>
+                                <div class="progress-bar-container clay-base"><div class="progress-bar bg-purple-500" style="width: 80%;"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="slide text-center">
+             <div class="max-w-4xl">
+                 <img src="images/baymax_bye.png" alt="Baymax Waving" class="w-64 mx-auto mb-8 rounded-full shadow-lg transition-transform duration-300 hover:rotate-12 hover:scale-110">
+                <h1 class="text-6xl font-bold text-slate-800 mb-4">Thank You</h1>
+                <div class="clay-card-inset p-6 inline-block mt-4">
+                    <p class="text-lg font-semibold">Ahmed Anwar</p>
+                    <p class="text-md text-slate-500 mb-4">Connect with me for more!</p>
+                    <div class="flex justify-center items-center space-x-4">
+                        <a href="#" target="_blank" class="text-slate-600 hover:text-blue-700 transition-colors">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" clip-rule="evenodd"/></svg>
+                        </a>
+                        <a href="#" target="_blank" class="text-slate-600 hover:text-gray-800 transition-colors">
+                           <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                        </a>
+                        <a href="#" target="_blank" class="text-slate-600 hover:text-blue-600 transition-colors">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"/></svg>
+                        </a>
+                        <a href="mailto:email@example.com" class="text-slate-600 hover:text-red-500 transition-colors">
+                           <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 3v18h24v-18h-24zm21.518 2l-9.518 7.713-9.518-7.713h19.036zm-19.518 14v-11.817l10 8.104 10-8.104v11.817h-20z"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        
+
+
+    </main>
+
+    <script>
+        // Simple scroll animation
+        const slides = document.querySelectorAll('.slide');
+
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+
+        slides.forEach(slide => {
+            observer.observe(slide);
+        });
+    </script>
+</body>
+</html>
