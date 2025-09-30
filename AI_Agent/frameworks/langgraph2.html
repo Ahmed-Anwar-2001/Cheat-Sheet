@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Production Guide to LangGraph</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #eef0f4;
+            --card-bg: #eef0f4;
+            --text-color: #334155;
+            --header-color: #1e293b;
+            --shadow-light: #ffffff;
+            --shadow-dark: #d1d9e6;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #10b981;
+            --accent-gradient: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .clay-card {
+            background-color: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 8px 8px 20px var(--shadow-dark), -8px -8px 20px var(--shadow-light);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        @media (hover: hover) {
+            .clay-card:hover {
+                transform: translateY(-10px);
+                box-shadow: 18px 18px 36px var(--shadow-dark), -12px -12px 36px var(--shadow-light);
+            }
+        }
+        
+        .clay-code {
+            background-color: #e2e5e9;
+            border-radius: 16px;
+            font-family: 'SF Mono', 'Courier New', Courier, monospace;
+            color: var(--header-color);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+            box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+            position: relative;
+        }
+
+        .code-copy-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: #d1d9e6;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #475569;
+            box-shadow: 2px 2px 5px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
+            transition: all 0.2s ease-in-out;
+        }
+
+        @media (hover: hover) {
+            .code-copy-button:hover {
+                background-color: #c1c9d6;
+                color: #1e293b;
+            }
+        }
+        
+        .code-copy-button:active {
+            box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light);
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            padding: 4rem 1rem;
+        }
+
+        @media (min-width: 768px) { .section { padding: 6rem 2rem; } }
+
+        .section.visible { opacity: 1; transform: translateY(0); }
+        .section:last-child { border-bottom: none; }
+
+        .gradient-text {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .content-prose { max-width: 1100px; line-height: 1.8; }
+        .content-prose h2 { margin-bottom: 2rem; }
+        .content-prose h3 { margin-top: 3rem; margin-bottom: 1.5rem; font-weight: 700; color: var(--header-color); }
+        .content-prose p { margin-bottom: 1.5rem; }
+        .content-prose ul.custom-list { list-style: none; padding-left: 0; }
+        .content-prose .custom-list li { position: relative; padding-left: 2rem; margin-bottom: 1rem; }
+        .content-prose .custom-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--accent-primary);
+            font-weight: 800;
+            font-size: 1.25rem;
+        }
+        
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+            background-color: var(--bg-color);
+        }
+        .sidebar-submenu { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out; }
+        @media (hover: hover) {
+            .sidebar-link:hover {
+                background: var(--accent-gradient);
+                color: white;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <aside id="sidebar" class="fixed top-0 left-0 z-50 h-screen w-80 shadow-[10px_0px_20px_var(--shadow-dark)] transform -translate-x-full overflow-y-auto">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold text-slate-800 mb-8">Production Guide</h2>
+            <nav class="space-y-2">
+                <div>
+                    <button class="sidebar-toggle w-full text-left font-bold text-lg text-slate-700 flex justify-between items-center p-2 rounded-lg">
+                        <span>Core Concepts</span>
+                        <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="sidebar-submenu pl-4 mt-2">
+                        <ul class="space-y-1 text-sm">
+                            <li><a href="#intro" class="sidebar-link block p-2 rounded-lg">Introduction</a></li>
+                            <li><a href="#deep-state" class="sidebar-link block p-2 rounded-lg">The State Deep Dive</a></li>
+                            <li><a href="#deep-nodes" class="sidebar-link block p-2 rounded-lg">Nodes & Error Handling</a></li>
+                            <li><a href="#deep-edges" class="sidebar-link block p-2 rounded-lg">Edges & Routing</a></li>
+                        </ul>
+                    </div>
+                </div>
+                 <div>
+                    <button class="sidebar-toggle w-full text-left font-bold text-lg text-slate-700 flex justify-between items-center p-2 rounded-lg">
+                        <span>Advanced Patterns</span>
+                        <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="sidebar-submenu pl-4 mt-2">
+                        <ul class="space-y-1 text-sm">
+                           <li><a href="#multi-agent" class="sidebar-link block p-2 rounded-lg">Multi-Agent Systems</a></li>
+                           <li><a href="#human-in-loop" class="sidebar-link block p-2 rounded-lg">Human-in-the-Loop</a></li>
+                           <li><a href="#tool-correction" class="sidebar-link block p-2 rounded-lg">Self-Correcting Tool Use</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <button class="sidebar-toggle w-full text-left font-bold text-lg text-slate-700 flex justify-between items-center p-2 rounded-lg">
+                        <span>Production Ops</span>
+                        <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="sidebar-submenu pl-4 mt-2">
+                        <ul class="space-y-1 text-sm">
+                           <li><a href="#persistence" class="sidebar-link block p-2 rounded-lg">Persistence & Checkpoints</a></li>
+                           <li><a href="#streaming" class="sidebar-link block p-2 rounded-lg">Async & Streaming</a></li>
+                           <li><a href="#debugging" class="sidebar-link block p-2 rounded-lg">Observability w/ LangSmith</a></li>
+                           <li><a href="#testing" class="sidebar-link block p-2 rounded-lg">Testing Strategies</a></li>
+                        </ul>
+                    </div>
+                </div>
+                 <div>
+                    <button class="sidebar-toggle w-full text-left font-bold text-lg text-slate-700 flex justify-between items-center p-2 rounded-lg">
+                        <span>Full Code Examples</span>
+                        <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="sidebar-submenu pl-4 mt-2">
+                        <ul class="space-y-1 text-sm">
+                           <li><a href="#code-multi-agent" class="sidebar-link block p-2 rounded-lg">Multi-Agent Research Team</a></li>
+                           <li><a href="#code-human-in-loop" class="sidebar-link block p-2 rounded-lg">Human-in-the-Loop Analyst</a></li>
+                           <li><a href="#code-tool-correction" class="sidebar-link block p-2 rounded-lg">Resilient RAG Agent</a></li>
+                           <li><a href="#code-testing" class="sidebar-link block p-2 rounded-lg">Testing Code Snippets</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </aside>
+
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <header class="sticky top-0 z-30 p-4 bg-white/70 backdrop-blur-xl border-b border-gray-200">
+        <div class="max-w-8xl mx-auto flex justify-between items-center">
+            <button id="open-sidebar" class="p-2 rounded-md hover:bg-gray-200"><svg class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+            <h1 class="text-xl font-bold text-slate-800 text-center flex-grow gradient-text">The Production Guide to LangGraph</h1>
+            <div class="w-8"></div>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <section id="intro" class="section text-center">
+            <div class="max-w-5xl mx-auto">
+                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-slate-800 mb-6">Building Production-Ready LLM Applications with <span class="gradient-text">LangGraph</span></h1>
+                <p class="text-lg sm:text-xl md:text-2xl text-slate-600 mb-10">From Simple Cycles to Complex, Fault-Tolerant, Multi-Agent Systems</p>
+                <div class="clay-card p-8 text-left content-prose">
+                    <h3>Beyond the Chain: Why LangGraph is Essential</h3>
+                    <p>LangChain Expression Language (LCEL) is brilliant for creating Directed Acyclic Graphs (DAGs)—predictable, linear sequences of operations. However, intelligent systems are rarely linear. They must reflect, retry, ask for help, and delegate. They need **loops, branching, and state**. This is the gap LangGraph fills. It's not just an add-on; it's a fundamental shift from building LLM *pipelines* to building LLM *agents* and *applications*.</p>
+                    <p>LangGraph provides a robust framework for creating stateful, cyclical graphs, which are essential for any application that requires more than a single pass of reasoning. By modeling applications as **state machines**, it brings reliability, predictability, and control to the often chaotic world of agentic behavior. This guide will take you from the core principles to advanced, production-ready patterns and full-fledged code examples.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="deep-state" class="section">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center">Core Concepts: The State Deep Dive</h2>
+                <h3>The Heart of the Machine</h3>
+                <p>The **State** is the single source of truth in a LangGraph application. It's a Python object that persists across all nodes in the graph. While a simple `dict` can work, using a `TypedDict` is a best practice for production code as it provides type hints, improving readability and maintainability.</p>
+                
+                <h3>Advanced State Management: Reducers</h3>
+                <p>By default, when a node returns a dictionary, LangGraph updates the state by overwriting existing keys with new values. For more complex operations, like appending messages to a list, you can use **reducers**. A reducer is a function that defines how a new value should be combined with an existing value in the state. `Annotated` syntax is used to attach a reducer to a state key.</p>
+                <p>The most common reducer is `operator.add`, which simply appends items to a list. However, you can write any custom function to manage state updates, giving you granular control over your application's memory.</p>
+                <div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto">
+<pre><code>
+# Basic State Definition
+from typing import TypedDict, List, Optional
+from langchain_core.messages import BaseMessage
+
+class BasicAgentState(TypedDict):
+    # This key will be overwritten by any node that returns 'input'
+    input: str 
+    # This key will be accumulated, not overwritten
+    chat_history: Annotated[list[BaseMessage], operator.add] 
+    
+# Advanced State with Custom Reducer
+def update_nested_dict(original: dict, new: dict) -> dict:
+    """A custom reducer to recursively update a nested dictionary."""
+    for key, value in new.items():
+        if isinstance(value, dict) and key in original and isinstance(original[key], dict):
+            original[key] = update_nested_dict(original[key], value)
+        else:
+            original[key] = value
+    return original
+
+class ComplexAppState(TypedDict):
+    user_info: dict
+    # Apply our custom reducer to this complex field
+    scratchpad: Annotated[dict, update_nested_dict] 
+    long_term_memory: Optional[str]
+</code></pre>
+                </div>
+            </div>
+        </section>
+        
+        <section id="deep-nodes" class="section">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center">Core Concepts: Nodes & Production-Grade Error Handling</h2>
+                <h3>Nodes as Atomic Units of Work</h3>
+                <p>Nodes are the functions or LCEL runnables that perform the work. A key principle for robust applications is to keep nodes **atomic and idempotent** where possible. An atomic node performs a single, well-defined task. An idempotent node can be run multiple times with the same input and produce the same output, which is crucial for building reliable retry mechanisms.</p>
+
+                <h3>Handling Failures within Nodes</h3>
+                <p>In production, things fail. APIs go down, models return malformed output, tools time out. A robust LangGraph node should not crash the entire application. Instead, it should handle errors gracefully and update the state with information about the failure. This allows downstream nodes or conditional edges to route the application to a recovery path.</p>
+                <div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto">
+<pre><code>
+import random
+from typing import TypedDict, Optional
+
+class ResilientState(TypedDict):
+    query: str
+    result: Optional[str]
+    error_info: Optional[dict]
+    retry_count: int
+
+# A tool that can fail
+def risky_web_search(query: str) -> str:
+    """This function simulates a web search that might fail."""
+    print(f"--- Performing risky search for: {query} ---")
+    if random.random() < 0.5:
+        raise ConnectionError("Failed to connect to the search service.")
+    return f"Search results for '{query}' are..."
+
+# A resilient node that catches exceptions
+def resilient_search_node(state: ResilientState) -> dict:
+    """
+    This node attempts to call the risky tool. If it fails, it updates
+    the state with error information instead of crashing.
+    """
+    query = state["query"]
+    try:
+        result = risky_web_search(query)
+        # Success path: return the result and clear any previous error
+        return {"result": result, "error_info": None} 
+    except Exception as e:
+        # Failure path: update the state with detailed error info
+        error_payload = {
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "node_name": "resilient_search_node"
+        }
+        return {"result": None, "error_info": error_payload}
+</code></pre>
+                </div>
+                <p>By capturing the error in the state, a subsequent routing function can decide whether to retry the node, try a different tool, or ask a human for help. This pattern is fundamental to building fault-tolerant agents.</p>
+            </div>
+        </section>
+
+        <section id="deep-edges" class="section">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center">Core Concepts: Edges & Advanced Routing</h2>
+                <h3>Edges as the Agent's Logic</h3>
+                <p>If nodes are the workers, edges are the manager directing the workflow. **Conditional edges** are the most powerful feature of LangGraph, enabling true agentic behavior. A conditional edge uses a "router" function that inspects the current state and returns the name of the next node to execute.</p>
+                <p>A production-grade router should be a pure function: its output should depend solely on its input (the state) and have no side effects. This makes the graph's logic predictable and easy to test.</p>
+
+                <h3>Multi-way Routing</h3>
+                <p>Routers are not limited to simple binary "yes/no" decisions. They can implement complex logic that routes to many different nodes, or even decides to end the process. The router function returns a string which must match one of the keys in the dictionary provided to `add_conditional_edges`.</p>
+                 <div class="w-full clay-card-inset p-6 my-8"><svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg" class="w-full"><defs><marker id="arrow2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7280" /></marker></defs><style>.label{font-family:Inter,sans-serif;font-size:12px;text-anchor:middle;fill:#1e293b}.node{fill:#e0e7ff;stroke:#a5b4fc;stroke-width:1.5}.edge{stroke:#6b7280;stroke-width:1.5;marker-end:url(#arrow2);fill:none}</style><rect x="50" y="125" width="100" height="50" rx="10" class="node"/><text x="100" y="155" class="label">Router Node</text><rect x="250" y="20" width="120" height="50" rx="10" class="node"/><text x="310" y="50" class="label">Reflect & Replan</text><rect x="250" y="125" width="120" height="50" rx="10" class="node"/><text x="310" y="155" class="label">Execute Tool</text><rect x="250" y="230" width="120" height="50" rx="10" class="node"/><text x="310" y="260" class="label">Ask for Help</text><rect x="470" y="125" width="100" height="50" rx="10" fill="#fecaca" stroke="#ef4444"/><text x="520" y="155" class="label">END</text><path d="M150,150 C 200,150 200,45 250,45" class="edge"/><path d="M150,150 C 200,150 200,150 250,150" class="edge"/><path d="M150,150 C 200,150 200,255 250,255" class="edge"/><path d="M370,150 C 420,150 420,150 470,150" class="edge"/><text x="210" y="30" class="label" font-size="10">"replan"</text><text x="210" y="130" class="label" font-size="10">"tool_call"</text><text x="210" y="270" class="label" font-size="10">"clarify"</text><text x="420" y="120" class="label" font-size="10">"end"</text></svg></div>
+                <div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto">
+<pre><code>
+from typing import Literal
+
+# Let's use the ResilientState from before
+def complex_router(state: ResilientState) -> Literal["search_again", "give_up", "end_process"]:
+    """
+    This router function decides the next step based on errors and retry counts.
+    """
+    print("--- ROUTING ---")
+    if state.get("error_info"):
+        print("Error detected. Checking retry count.")
+        # If we have an error, we might want to retry
+        retry_count = state.get("retry_count", 0)
+        if retry_count < 3:
+            # It's safe to try again
+            return "search_again"
+        else:
+            # We've tried too many times, give up
+            return "give_up"
+    else:
+        # No error, we can finish
+        return "end_process"
+
+# In the graph definition:
+# workflow.add_conditional_edges(
+#     "resilient_search_node",
+#     complex_router,
+#     {
+#         "search_again": "resilient_search_node", # Loop back to itself!
+#         "give_up": "error_handling_node", # Go to a specific error handler
+#         "end_process": END
+#     }
+# )
+</code></pre>
+                </div>
+            </div>
+        </section>
+        
+        <section id="multi-agent" class="section">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center">Advanced Pattern: Multi-Agent Systems</h2>
+                <p>LangGraph excels at orchestrating collaboration between multiple specialized agents. The most common and effective pattern is the **Supervisor-Worker** model. A supervisor agent acts as a project manager, decomposing a task and routing sub-tasks to the appropriate worker agent. The workers execute their tasks and report back. The state object becomes the shared workspace where results are collected.</p>
+                <p>This architecture is highly scalable and maintainable. Each agent can be developed and tested independently. The supervisor's routing logic determines the team's overall behavior. We will build a full implementation of a multi-agent research team in the code examples section.</p>
+                <div class="w-full clay-card-inset p-6 my-8"><svg viewBox="0 0 500 250" xmlns="http://www.w3.org/2000/svg" class="w-full"><defs><marker id="arrow3" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"/></marker></defs><style>.label{font-family:Inter,sans-serif;font-size:12px;text-anchor:middle;fill:#1e293b}.node{fill:#e0e7ff;stroke:#a5b4fc;stroke-width:1.5}.supervisor{fill:#fbcfe8;stroke:#ec4899;stroke-width:1.5}.edge{stroke:#3b82f6;stroke-width:1.5;marker-end:url(#arrow3);fill:none}</style><rect x="200" y="20" width="100" height="50" rx="25" class="supervisor"/><text x="250" y="50" class="label">Supervisor</text><rect x="50" y="150" width="100" height="50" rx="10" class="node"/><text x="100" y="170" class="label">Researcher</text><text x="100" y="190" class="label">(Tool User)</text><rect x="350" y="150" width="100" height="50" rx="10" class="node"/><text x="400" y="170" class="label">Writer</text><text x="400" y="190" class="label">(Synthesizer)</text><path d="M250,70 V 130" class="edge"/><path d="M250,130 H 125 C 115 130, 115 150, 100 150" class="edge"/><path d="M250,130 H 375 C 385 130, 385 150, 400 150" class="edge"/><path d="M100,200 C 115 220, 185 220, 200 180 V 70" class="edge" stroke-dasharray="4"/><path d="M400,200 C 385 220, 315 220, 300 180 V 70" class="edge" stroke-dasharray="4"/><text x="175" y="110" class="label" font-size="10">"Route to Researcher"</text><text x="325" y="110" class="label" font-size="10">"Route to Writer"</text><text x="250" y="230" class="label" font-size="10">Results update shared state</text></svg></div>
+            </div>
+        </section>
+        
+        <section id="human-in-loop" class="section">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center">Advanced Pattern: Human-in-the-Loop</h2>
+                <p>Many critical applications require human oversight. LangGraph facilitates this with **interrupts**. You can configure your graph to pause execution at specific nodes, allowing a human to review the state and provide input before the process continues. This is essential for applications like financial trading bots, medical diagnosis assistants, or content moderation tools.</p>
+                <p>The `interrupt_before` argument in the `compile()` method specifies a list of node names where the graph should pause. When the graph streams its output, it will run until it hits one of these nodes, then stop. The application can then present the current state to the user. Once the user provides feedback (which updates the state), the graph can be resumed from that exact point.</p>
+            </div>
+        </section>
+
+        <section id="tool-correction" class="section">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center">Advanced Pattern: Self-Correcting Tool Use</h2>
+                <p>A common failure mode for agents is incorrect tool usage. The agent might misunderstand the tool's required arguments or the tool itself might return an error. A resilient agent should be able to recover from such failures. Using LangGraph's cycles, you can build a **"try-reflect-correct"** loop.</p>
+                <ol class="list-decimal pl-6 my-4">
+                    <li class="mb-2"><strong>Try:</strong> An "executor" node attempts to call a tool.</li>
+                    <li class="mb-2"><strong>Reflect:</strong> If the tool call fails, the node catches the error and saves it to the state. A conditional edge routes the flow to a "reflection" node.</li>
+                    <li class="mb-2"><strong>Correct:</strong> The reflection node (an LLM call) examines the original instruction, the failed tool call, and the error message. It then formulates a corrected tool call.</li>
+                    <li class="mb-2"><strong>Loop:</strong> An edge routes the flow back to the "executor" node to try again with the corrected arguments.</li>
+                </ol>
+                <p>This pattern significantly increases the reliability of tool-using agents, making them more suitable for production environments.</p>
+            </div>
+        </section>
+
+        <section id="persistence" class="section">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center">Production Ops: Persistence & Checkpoints</h2>
+                <p>Long-running agentic tasks can be interrupted by system crashes or timeouts. **Checkpointers** solve this problem by automatically saving the state of the graph after each step. This allows you to resume the execution from exactly where it left off.</p>
+                <p>LangGraph provides built-in support for various backends, including in-memory SQLite (`SqliteSaver`), persistent SQLite files, and Postgres (`PostgresSaver`). Using a persistent checkpointer is a non-negotiable requirement for any production application that involves long-running or stateful interactions.</p>
+                <p>Each conversation or task should be associated with a unique `thread_id`. When you invoke or stream the graph, you pass this `thread_id` in the config. LangGraph uses it to save and retrieve the correct checkpoint, ensuring that concurrent conversations don't interfere with each other.</p>
+            </div>
+        </section>
+
+        <section id="streaming" class="section">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center">Production Ops: Async & Streaming for Responsiveness</h2>
+                <p>For interactive applications like chatbots, users expect immediate feedback. Waiting for a complex agent to complete its entire reasoning process before showing any output leads to a poor user experience. LangGraph's compiled graphs are LCEL runnables and fully support asynchronous operations and streaming.</p>
+                <p>The `astream_events()` method is particularly powerful. It provides a stream of events that describe what's happening inside the graph in real-time. You can subscribe to events for specific nodes and stream back token-by-token output from LLMs, tool outputs, or state changes as they happen. This allows you to build highly responsive UIs that reflect the agent's "thinking" process.</p>
+            </div>
+        </section>
+        
+        <section id="debugging" class="section">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center">Production Ops: Observability with LangSmith</h2>
+                <p>Complex graphs can be difficult to debug. **LangSmith** is an indispensable tool for tracing and understanding the execution of LangGraph applications. By setting the appropriate environment variables, all runs of your graph are automatically logged to LangSmith.</p>
+                <p>The LangSmith trace provides a detailed, hierarchical view of the execution. You can see the inputs and outputs of every node, the decisions made by conditional edges, the exact prompts sent to LLMs, and the outputs from tools. This level of observability is critical for identifying bottlenecks, debugging errors, and improving the performance of your agents in production.</p>
+            </div>
+        </section>
+
+        <section id="testing" class="section">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center">Production Ops: Testing Strategies</h2>
+                <p>Testing agentic systems can be challenging due to their non-deterministic nature. A structured approach is essential.</p>
+                <ul class="custom-list">
+                    <li><strong>Unit Testing Nodes:</strong> Each node function should be tested in isolation. Since nodes are just Python functions, you can use standard testing libraries like `pytest`. Mock any external dependencies (like LLM calls or API requests) to ensure your tests are fast and reliable.</li>
+                    <li><strong>Integration Testing Routers:</strong> The logic of your conditional edges is critical. Write tests for your router functions to ensure they return the correct next node name for a variety of possible states.</li>
+                    <li><strong>End-to-End Testing the Graph:</strong> For the compiled graph, you can test specific, predictable pathways. For example, you can create a mock state that you know should trigger a certain sequence of nodes and assert that the final state is what you expect. Use a checkpointer to inspect the state at each step of the execution.</li>
+                </ul>
+                <p>We provide sample `pytest` code in the final section to demonstrate these concepts.</p>
+            </div>
+        </section>
+
+        <section id="code-multi-agent" class="section">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center">Full Example 1: Multi-Agent Research Team</h2>
+                <p>This example implements the Supervisor-Worker pattern. We create a team with a "Chief Editor" (the supervisor), a "Researcher" that can search the web, and a "Writer" that synthesizes the final report. The supervisor orchestrates the entire process, routing tasks and managing the shared state.</p>
+                <div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto">
+                <button class="code-copy-button" onclick="copyCode(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zM-1 7a.5.5 0 0 1 .5-.5h15a.5.5 0 0 1 0 1h-15A.5.5 0 0 1-1 7z"/></svg>
+                </button>
+<pre><code>
+################################################################################
+#
+#                    LANGGRAPH PRODUCTION GUIDE - EXAMPLE 1
+#
+#                BUILDING A MULTI-AGENT COLLABORATIVE TEAM
+#
+# This script demonstrates a sophisticated multi-agent system where a supervisor
+# coordinates work between specialized agents (a researcher and a writer).
+#
+# Key Concepts Illustrated:
+# 1.  Supervisor-Worker Pattern: A central router (supervisor) delegates tasks.
+# 2.  State Management: A shared `TeamState` object for collaboration.
+# 3.  Tool Definition: Creating and using custom tools (a mock web search).
+# 4.  Agent Creation: Defining individual, specialized agents.
+# 5.  Graph Orchestration: Connecting agents and logic in a StateGraph.
+# 6.  Dynamic Routing: The supervisor decides the next step based on state.
+#
+################################################################################
+
+import os
+import operator
+from typing import TypedDict, Annotated, List, Union
+from uuid import uuid4
+
+from langchain_core.messages import BaseMessage, HumanMessage, ToolMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.tools import tool
+from langchain.output_parsers.openai_tools import PydanticToolsParser
+from langchain_core.pydantic_v1 import BaseModel, Field
+
+# Using a fake model for demonstration purposes to avoid API key requirements.
+# In a real application, you would replace this with a real model, e.g., from langchain_openai.
+from langchain_core.runnables import Runnable, RunnableLambda
+from langchain_core.outputs import Generation, ChatGeneration
+from langchain.adapters.openai import convert_message_to_dict
+
+# This is a mock model that will act as our LLM
+# It returns pre-defined responses to simulate agent behavior
+class FakeLLM(Runnable):
+    def invoke(self, messages, *args, **kwargs):
+        tool_calls = []
+        if any("research" in msg.content.lower() for msg in messages):
+            tool_calls.append({
+                "name": "web_search",
+                "args": {"query": "LangGraph vs CrewAI"},
+                "id": f"call_{uuid4()}",
+            })
+        
+        response_content = "Thinking..."
+        if any(isinstance(msg, ToolMessage) for msg in messages):
+             response_content = "I have the research. I will now proceed to writing the report."
+        elif any("write" in msg.content.lower() for msg in messages):
+            response_content = (
+                "## LangGraph vs. CrewAI: A Detailed Comparison\n\n"
+                "**LangGraph** is a low-level framework for building stateful, multi-actor applications. It provides maximum control...\n\n"
+                "**CrewAI** is a high-level framework focused on orchestrating role-playing autonomous agents. It simplifies collaboration..."
+            )
+
+        response_metadata = {}
+        if tool_calls:
+            response_metadata["tool_calls"] = tool_calls
+
+        return ChatGeneration(
+            message={
+                "role": "assistant",
+                "content": response_content,
+                "tool_calls": tool_calls
+            },
+        )
+# Instantiate our models
+llm = FakeLLM()
+
+# --- 1. Define Tools ---
+# Tools are functions that agents can learn to call.
+
+@tool
+def web_search(query: str) -> str:
+    """
+    A mock tool that simulates searching the web for a given query.
+    In a real app, this would use a library like Tavily or DuckDuckGo Search.
+    """
+    print(f"---TOOL: Performing web search for '{query}'---")
+    return (
+        "Search results:\n"
+        "1. LangGraph is a library for building stateful, multi-actor applications with LLMs.\n"
+        "2. It extends LangChain Expression Language (LCEL) and allows for cycles.\n"
+        "3. CrewAI is a framework for orchestrating role-playing, autonomous AI agents.\n"
+        "4. It is designed for collaborative tasks and uses a high-level, process-oriented approach."
+    )
+
+# --- 2. Define State ---
+# The state is the shared memory for all agents.
+
+class TeamState(TypedDict):
+    messages: Annotated[List[BaseMessage], operator.add]
+    team_members: List[str]
+    next: str
+
+# --- 3. Define Agent Logic ---
+
+# We create a reusable agent creation function.
+def create_agent(llm: Runnable, tools: list, system_prompt: str):
+    """Factory function to create a new agent runnable."""
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", system_prompt),
+            MessagesPlaceholder(variable_name="messages"),
+        ]
+    )
+    return prompt | llm.bind_tools(tools)
+
+# Define the Pydantic models for the supervisor's router.
+# This gives the supervisor structured output, making the routing more reliable.
+class Route(BaseModel):
+    """Select the next team member to speak."""
+    next: str = Field(
+        ...,
+        description="The name of the next team member to which the task should be routed."
+    )
+
+def create_supervisor(llm: Runnable, team_members: List[str]) -> Runnable:
+    """
+    Creates the supervisor agent, which is responsible for routing tasks.
+    """
+    system_prompt = (
+        "You are the chief editor and supervisor of a research team. "
+        "Your job is to manage the team and the workflow to produce a high-quality research report. "
+        "Given the current conversation, decide which team member should act next. "
+        "You can choose from the following members: {team_members}. "
+        "Or, you can decide that the task is complete by responding with 'FINISH'."
+    ).format(team_members=", ".join(team_members))
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", system_prompt),
+            MessagesPlaceholder(variable_name="messages"),
+            (
+                "system",
+                "Given the conversation above, who should act next? "
+                "Or should we FINISH? Select one of: {options}",
+            ),
+        ]
+    ).partial(options=", ".join(team_members + ["FINISH"]))
+    
+    # We use PydanticToolsParser to get structured routing decisions.
+    # The supervisor's LLM is instructed to call the "Route" tool.
+    supervisor_chain = prompt | llm.bind_tools([Route])
+    return supervisor_chain
+
+# --- 4. Create the Agents and Supervisor ---
+
+# Define the team members and their roles
+RESEARCHER_PROMPT = "You are a senior research analyst. Your job is to search for information on the web."
+WRITER_PROMPT = "You are a professional report writer. Your job is to take research findings and write a clear, concise report."
+
+researcher_agent = create_agent(llm, [web_search], RESEARCHER_PROMPT)
+writer_agent = create_agent(llm, [], WRITER_PROMPT)
+
+# The supervisor manages the team
+team_members = ["Researcher", "Writer"]
+supervisor_agent = create_supervisor(llm, team_members)
+
+# --- 5. Define Graph Nodes ---
+
+# This node executes the agent's logic. It can be reused for any agent.
+def agent_node(state: TeamState, agent: Runnable, name: str):
+    """A generic node that invokes an agent and handles its output."""
+    result = agent.invoke(state)
+    
+    # The FakeLLM returns a dict-like message, we need to handle it.
+    # Real LLMs from langchain_openai would return a proper AIMessage object.
+    message_dict = result.message
+    
+    # Check for tool calls in the response
+    if message_dict.get("tool_calls"):
+        messages = [ToolMessage(content=web_search.invoke(tool_call['args']), tool_call_id=tool_call['id']) for tool_call in message_dict["tool_calls"]]
+    else:
+        messages = [HumanMessage(content=message_dict["content"], name=name)]
+        
+    return {"messages": messages, "next": name}
+
+# The supervisor node is special. It routes the conversation.
+def supervisor_node(state: TeamState):
+    """The node that invokes the supervisor to decide the next step."""
+    # We are using a fake LLM, so we need to manually simulate the routing logic
+    # In a real scenario, the LLM's output would be parsed.
+    last_message_content = state["messages"][-1].content
+    if "Search results" in last_message_content:
+        # If we have research, it's the writer's turn
+        next_member = "Writer"
+    elif "## LangGraph vs. CrewAI" in last_message_content:
+        # If the report is written, we're done
+        next_member = "FINISH"
+    else:
+        # Start with the researcher
+        next_member = "Researcher"
+        
+    return {"next": next_member}
+
+# --- 6. Build the Graph ---
+
+from langgraph.graph import StateGraph, END
+
+workflow = StateGraph(TeamState)
+
+# Add the agent nodes
+workflow.add_node("Researcher", lambda state: agent_node(state, researcher_agent, "Researcher"))
+workflow.add_node("Writer", lambda state: agent_node(state, writer_agent, "Writer"))
+# Add the supervisor node
+workflow.add_node("Supervisor", supervisor_node)
+
+# Define the conditional routing logic
+def router(state: TeamState):
+    """The main router for the graph. It directs flow based on the 'next' field."""
+    print(f"---ROUTER: Deciding next step. Current 'next' is '{state['next']}'---")
+    if state["next"] == "FINISH":
+        return END
+    return state["next"]
+
+# The entry point is the supervisor
+workflow.set_entry_point("Supervisor")
+
+# Add edges from each agent back to the supervisor, creating a loop
+workflow.add_edge("Researcher", "Supervisor")
+workflow.add_edge("Writer", "Supervisor")
+
+# The supervisor's decision routes to the correct agent or ends the process
+workflow.add_conditional_edges("Supervisor", router, {"Researcher": "Researcher", "Writer": "Writer"})
+
+# Compile the graph into a runnable object
+multi_agent_app = workflow.compile()
+
+# --- 7. Run the Multi-Agent System ---
+
+def run_multi_agent_system():
+    """
+    Executes the multi-agent graph with a sample query and prints the output stream.
+    """
+    print("🚀 Starting Multi-Agent Research Team...\n")
+    initial_state = {
+        "messages": [HumanMessage(content="Please research LangGraph vs CrewAI and write a report.")],
+        "team_members": team_members,
+    }
+    
+    for step in multi_agent_app.stream(initial_state, {"recursion_limit": 10}):
+        for key, value in step.items():
+            print(f"--- STEP: Node '{key}' ---")
+            print(f"State updated: {value}\n")
+            
+    print("\n✅ Multi-Agent Research Team finished.")
+
+if __name__ == "__main__":
+    # To run this example, you can call this function.
+    run_multi_agent_system()
+
+# Expected output trace:
+#
+# 🚀 Starting Multi-Agent Research Team...
+#
+# ---ROUTER: Deciding next step. Current 'next' is 'Researcher'---
+# --- STEP: Node 'Researcher' ---
+# ---TOOL: Performing web search for 'LangGraph vs CrewAI'---
+# State updated: {'messages': [ToolMessage(...)], 'next': 'Researcher'}
+#
+# --- STEP: Node 'Supervisor' ---
+# State updated: {'next': 'Writer'}
+#
+# ---ROUTER: Deciding next step. Current 'next' is 'Writer'---
+# --- STEP: Node 'Writer' ---
+# State updated: {'messages': [HumanMessage(content='## LangGraph vs. CrewAI...')], 'next': 'Writer'}
+#
+# --- STEP: Node 'Supervisor' ---
+# State updated: {'next': 'FINISH'}
+#
+# ---ROUTER: Deciding next step. Current 'next' is 'FINISH'---
+# --- STEP: Node '__end__' ---
+# State updated: {'messages': [...], 'team_members': [...], 'next': 'FINISH'}
+#
+# ✅ Multi-Agent Research Team finished.
+
+</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="code-human-in-loop" class="section">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center">Full Example 2: Human-in-the-Loop Financial Analyst</h2>
+                <p>This example demonstrates how to build a system that requires human approval. An AI financial analyst fetches stock data and proposes a trade. The graph then pauses, waits for a human user to approve or deny the trade, and then proceeds accordingly. This pattern is crucial for high-stakes decision-making.</p>
+                <div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto">
+                <button class="code-copy-button" onclick="copyCode(this)">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zM-1 7a.5.5 0 0 1 .5-.5h15a.5.5 0 0 1 0 1h-15A.5.5 0 0 1-1 7z"/></svg>
+                </button>
+<pre><code>
+################################################################################
+#
+#                    LANGGRAPH PRODUCTION GUIDE - EXAMPLE 2
+#
+#                    BUILDING A HUMAN-IN-THE-LOOP WORKFLOW
+#
+# This script creates an AI financial analyst that requires human approval
+# before executing a trade.
+#
+# Key Concepts Illustrated:
+# 1.  Human-in-the-Loop: Using `interrupt_before` to pause graph execution.
+# 2.  Stateful Interaction: Resuming the graph with updated state after human input.
+# 3.  Checkpointers: Using a checkpointer to manage the state across pauses.
+# 4.  Conditional Logic: Routing based on human approval or denial.
+#
+################################################################################
+
+import os
+from typing import TypedDict, Annotated, Optional
+import operator
+import random
+from uuid import uuid4
+
+from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.sqlite import SqliteSaver
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+
+# --- Mock LLM for this example ---
+# This simulates the LLM's responses for the analyst.
+class FakeAnalystLLM:
+    def invoke(self, messages):
+        last_message = messages[-1].content
+        if "propose a trade" in last_message.lower():
+            return AIMessage(
+                content="Based on recent positive news, I propose buying 100 shares of NVDA."
+            )
+        return AIMessage(content="Instruction not understood.")
+        
+llm = FakeAnalystLLM()
+
+# --- 1. Define Tools ---
+@tool
+def get_stock_price(ticker: str) -> float:
+    """Mock function to get a stock price."""
+    print(f"---TOOL: Fetching price for {ticker}---")
+    return random.uniform(100, 1000)
+
+@tool
+def execute_trade(ticker: str, shares: int, action: str) -> str:
+    """Mock function to execute a trade."""
+    price = get_stock_price(ticker)
+    print(f"---TOOL: EXECUTING TRADE: {action.upper()} {shares} shares of {ticker} at ${price:.2f}---")
+    return f"Successfully executed trade: {action} {shares} of {ticker}."
+
+# --- 2. Define State ---
+# The state will track the conversation and the proposed trade.
+class FinancialAnalystState(TypedDict):
+    messages: Annotated[list[BaseMessage], operator.add]
+    proposed_trade: Optional[dict]
+    trade_result: Optional[str]
+
+# --- 3. Define Graph Nodes ---
+
+def analyst_node(state: FinancialAnalystState):
+    """The analyst proposes a trade based on the user's request."""
+    print("---NODE: Analyst is thinking...---")
+    response = llm.invoke(state["messages"])
+    # A real implementation would parse the LLM output into a structured format.
+    # For this example, we'll hardcode the parsed trade.
+    trade = {"ticker": "NVDA", "shares": 100, "action": "buy"}
+    return {"messages": [response], "proposed_trade": trade}
+
+def human_approval_node(state: FinancialAnalystState):
+    """
+    This is a placeholder node where the graph will pause.
+    The actual human interaction happens outside the graph, between steps.
+    """
+    print("---NODE: Awaiting human approval...---")
+    # This node doesn't need to do anything itself. The interrupt handles the pause.
+    return {}
+
+def trade_executor_node(state: FinancialAnalystState):
+    """Executes the trade if it was approved."""
+    print("---NODE: Executing trade...---")
+    trade = state["proposed_trade"]
+    result = execute_trade.invoke(trade)
+    return {"trade_result": result}
+
+def trade_cancelled_node(state: FinancialAnalystState):
+    """Handles the case where the trade was denied."""
+    print("---NODE: Trade cancelled by user.---")
+    return {"trade_result": "Trade was cancelled by the user."}
+
+# --- 4. Define Routing Logic ---
+
+def router_after_approval(state: FinancialAnalystState) -> str:
+    """Routes to execute or cancel the trade based on human input."""
+    print("---ROUTER: Checking human decision...---")
+    # The human input will be the last message in the state.
+    last_message = state["messages"][-1]
+    if "approve" in last_message.content.lower():
+        print("Decision: Approved")
+        return "execute_trade"
+    else:
+        print("Decision: Denied")
+        return "cancel_trade"
+
+# --- 5. Build the Graph ---
+
+# Checkpointers are essential for human-in-the-loop workflows.
+memory_saver = SqliteSaver.from_conn_string(":memory:")
+
+workflow = StateGraph(FinancialAnalystState)
+
+workflow.add_node("analyst", analyst_node)
+workflow.add_node("human_approval", human_approval_node)
+workflow.add_node("execute_trade", trade_executor_node)
+workflow.add_node("cancel_trade", trade_cancelled_node)
+
+workflow.set_entry_point("analyst")
+workflow.add_edge("analyst", "human_approval")
+workflow.add_conditional_edges(
+    "human_approval",
+    router_after_approval,
+    {
+        "execute_trade": "execute_trade",
+        "cancel_trade": "cancel_trade",
+    },
+)
+workflow.add_edge("execute_trade", END)
+workflow.add_edge("cancel_trade", END)
+
+# Compile the graph, interrupting before the 'human_approval' node.
+human_in_loop_app = workflow.compile(
+    checkpointer=memory_saver,
+    interrupt_before=["human_approval"]
+)
+
+# --- 6. Run the Human-in-the-Loop System ---
+
+def run_human_in_loop_system():
+    """
+    Simulates a full run of the financial analyst, including the human interaction part.
+    """
+    print("🚀 Starting Human-in-the-Loop Financial Analyst...\n")
+    
+    # Each conversation needs a unique ID for the checkpointer.
+    config = {"configurable": {"thread_id": str(uuid4())}}
+    
+    initial_state = {
+        "messages": [HumanMessage(content="Please analyze NVDA and propose a trade.")]
+    }
+
+    # 1. Start the graph. It will run until it hits the interrupt.
+    print("--- Part 1: AI proposes a trade ---")
+    graph_run = human_in_loop_app.stream(initial_state, config)
+    for step in graph_run:
+        for key, value in step.items():
+            print(f"--- STEP: Node '{key}' ---")
+            print(f"State updated: {value}\n")
+
+    # 2. At this point, the graph is paused. We get the current state.
+    current_state = human_in_loop_app.get_state(config)
+    print("--- GRAPH PAUSED ---")
+    print("AI Proposal:", current_state.values['messages'][-1].content)
+    print("--------------------")
+
+    # 3. Simulate human interaction.
+    # human_decision = input("Do you 'approve' or 'deny' this trade? > ")
+    human_decision = "approve" # Hardcoding for this example
+    print(f"Human Decision: {human_decision}")
+    
+    # 4. Resume the graph with the human's decision added to the state.
+    print("\n--- Part 2: Resuming graph with human decision ---")
+    resume_run = human_in_loop_app.stream(
+        None, # Pass None as input to resume from the last state
+        config,
+        input={"messages": [HumanMessage(content=human_decision)]}
+    )
+    
+    for step in resume_run:
+        for key, value in step.items():
+            print(f"--- STEP: Node '{key}' ---")
+            print(f"State updated: {value}\n")
+
+    final_state = human_in_loop_app.get_state(config)
+    print("\n✅ Human-in-the-Loop process finished.")
+    print("Final Result:", final_state.values['trade_result'])
+
+
+if __name__ == "__main__":
+    run_human_in_loop_system()
+
+# Expected output trace:
+#
+# 🚀 Starting Human-in-the-Loop Financial Analyst...
+#
+# --- Part 1: AI proposes a trade ---
+# ---NODE: Analyst is thinking...---
+# --- STEP: Node 'analyst' ---
+# State updated: {'messages': [AIMessage(...)], 'proposed_trade': {...}}
+#
+# --- GRAPH PAUSED ---
+# AI Proposal: Based on recent positive news, I propose buying 100 shares of NVDA.
+# --------------------
+# Human Decision: approve
+#
+# --- Part 2: Resuming graph with human decision ---
+# ---ROUTER: Checking human decision...---
+# Decision: Approved
+# ---NODE: Executing trade...---
+# ---TOOL: Fetching price for NVDA---
+# ---TOOL: EXECUTING TRADE: BUY 100 shares of NVDA at $...---
+# --- STEP: Node 'execute_trade' ---
+# State updated: {'trade_result': 'Successfully executed trade...'}
+#
+# --- STEP: Node '__end__' ---
+# State updated: {...}
+#
+# ✅ Human-in-the-Loop process finished.
+# Final Result: Successfully executed trade: buy 100 of NVDA.
+</code></pre>
+                </div>
+            </div>
+        </section>
+        
+        <section id="code-tool-correction" class="section">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center">Full Example 3: Resilient & Self-Correcting RAG Agent</h2>
+                <p>This example builds a Retrieval-Augmented Generation (RAG) agent that is resilient to tool failures. If its initial attempt to retrieve documents fails or yields poor results, it enters a "reflect-and-rewrite" loop to try a new query. This demonstrates a practical self-correction pattern essential for robust, autonomous agents.</p>
+                <div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto">
+                <button class="code-copy-button" onclick="copyCode(this)">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zM-1 7a.5.5 0 0 1 .5-.5h15a.5.5 0 0 1 0 1h-15A.5.5 0 0 1-1 7z"/></svg>
+                </button>
+<pre><code>
+################################################################################
+#
+#                    LANGGRAPH PRODUCTION GUIDE - EXAMPLE 3
+#
+#           BUILDING A RESILIENT, SELF-CORRECTING RAG AGENT
+#
+# This script creates a RAG agent that can handle retrieval failures by
+# reflecting on the results and rewriting its search query.
+#
+# Key Concepts Illustrated:
+# 1.  Self-Correction Loop: A cyclical graph for retrying and improving actions.
+# 2.  Resilient Tool Use: Handling poor or empty tool outputs.
+# 3.  State-driven Control Flow: Using state (e.g., `retry_count`) to control loops.
+# 4.  Combining Retrieval and Generation: A complete RAG workflow.
+#
+################################################################################
+
+import os
+from typing import TypedDict, Annotated, List
+import operator
+
+from langgraph.graph import StateGraph, END
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+
+# --- Mock LLM and Tools for this example ---
+
+class FakeRAG_LLM:
+    """A mock LLM for the RAG agent."""
+    def invoke(self, messages):
+        last_message = messages[-1].content
+        if "rewrite" in last_message.lower():
+            # Simulate rewriting the query
+            return AIMessage(content="What is the LangGraph library for LLM applications?")
+        elif "documents:" in last_message.lower():
+            # Simulate generating an answer from documents
+            return AIMessage(content="LangGraph is a library for building stateful, multi-actor applications with LLMs, extending LCEL to allow for cycles.")
+        else:
+            return AIMessage(content="I am ready to help.")
+            
+llm = FakeRAG_LLM()
+
+@tool
+def retrieve_documents(query: str) -> List[str]:
+    """
+    Mock retrieval tool. It fails for simple queries but succeeds for more
+    specific ones, forcing the agent to use its self-correction mechanism.
+    """
+    print(f"---TOOL: Retrieving documents for query: '{query}'---")
+    if "langgraph" in query.lower() and "library" in query.lower():
+        return [
+            "Doc 1: LangGraph is part of the LangChain ecosystem...",
+            "Doc 2: It uses a state machine model to create cyclical graphs...",
+        ]
+    else:
+        print("---TOOL: Retrieval failed. No relevant documents found.---")
+        return []
+
+# --- 2. Define State ---
+
+class ResilientRAGState(TypedDict):
+    messages: Annotated[list[BaseMessage], operator.add]
+    original_query: str
+    current_query: str
+    documents: List[str]
+    generation: str
+    retry_count: int
+
+# --- 3. Define Graph Nodes ---
+
+def retrieval_node(state: ResilientRAGState):
+    """Retrieves documents based on the current query."""
+    print("---NODE: Retrieving documents---")
+    retry_count = state.get("retry_count", 0)
+    query = state["current_query"]
+    documents = retrieve_documents.invoke({"query": query})
+    return {"documents": documents, "retry_count": retry_count + 1}
+
+def grade_retrieval_node(state: ResilientRAGState):
+    """
+    Grades the retrieved documents. This could be an LLM call in a real app.
+    Here, we just check if the documents list is empty.
+    """
+    print("---NODE: Grading retrieval---")
+    if not state["documents"]:
+        print("Grading: Documents are NOT acceptable.")
+        return {"documents_are_good": False}
+    else:
+        print("Grading: Documents are acceptable.")
+        return {"documents_are_good": True}
+
+def rewrite_query_node(state: ResilientRAGState):
+    """Asks the LLM to rewrite the query based on the failure."""
+    print("---NODE: Rewriting query---")
+    new_messages = [
+        HumanMessage(
+            content=f"The query '{state['current_query']}' failed to retrieve any documents. "
+                    f"Please rewrite it to be more specific."
+        )
+    ]
+    response = llm.invoke(state["messages"] + new_messages)
+    new_query = response.content
+    print(f"New query: {new_query}")
+    return {"messages": [response], "current_query": new_query}
+
+def generation_node(state: ResilientRAGState):
+    """Generates an answer based on the retrieved documents."""
+    print("---NODE: Generating answer---")
+    doc_text = "\n".join(state["documents"])
+    prompt = f"Based on the following documents, please answer the question: '{state['original_query']}'\n\nDocuments:\n{doc_text}"
+    response = llm.invoke([HumanMessage(content=prompt)])
+    return {"messages": [response], "generation": response.content}
+
+def give_up_node(state: ResilientRAGState):
+    """A terminal node for when the agent fails after multiple retries."""
+    print("---NODE: Agent giving up---")
+    response = AIMessage(content="I'm sorry, I was unable to find relevant information after multiple attempts.")
+    return {"messages": [response], "generation": response.content}
+
+# --- 4. Define Routing Logic ---
+
+def router_after_grading(state: ResilientRAGState) -> str:
+    """Decides whether to generate, rewrite, or give up."""
+    print("---ROUTER: After grading---")
+    if state.get("documents_are_good"):
+        print("Decision: Generate answer.")
+        return "generate"
+    else:
+        if state["retry_count"] >= 2:
+            print("Decision: Max retries reached. Give up.")
+            return "give_up"
+        else:
+            print("Decision: Rewrite query.")
+            return "rewrite"
+
+# --- 5. Build the Graph ---
+
+workflow = StateGraph(ResilientRAGState)
+
+workflow.add_node("retrieve", retrieval_node)
+workflow.add_node("grade_retrieval", grade_retrieval_node)
+workflow.add_node("rewrite_query", rewrite_query_node)
+workflow.add_node("generate", generation_node)
+workflow.add_node("give_up", give_up_node)
+
+workflow.set_entry_point("retrieve")
+workflow.add_edge("retrieve", "grade_retrieval")
+workflow.add_conditional_edges(
+    "grade_retrieval",
+    router_after_grading,
+    {
+        "generate": "generate",
+        "rewrite": "rewrite_query",
+        "give_up": "give_up"
+    },
+)
+workflow.add_edge("rewrite_query", "retrieve") # The self-correction loop!
+workflow.add_edge("generate", END)
+workflow.add_edge("give_up", END)
+
+resilient_rag_app = workflow.compile()
+
+# --- 6. Run the Resilient RAG System ---
+
+def run_resilient_rag_system():
+    """Executes the RAG agent and shows its self-correction process."""
+    print("🚀 Starting Resilient RAG Agent...\n")
+    
+    query = "info on langgraph"
+    initial_state = {
+        "messages": [HumanMessage(content=query)],
+        "original_query": query,
+        "current_query": query,
+    }
+    
+    for step in resilient_rag_app.stream(initial_state):
+        for key, value in step.items():
+            print(f"--- STEP: Node '{key}' ---")
+            print(f"State updated: {value}\n")
+    
+    final_state = resilient_rag_app.invoke(initial_state)
+    print("\n✅ Resilient RAG Agent finished.")
+    print("Final Generation:", final_state['generation'])
+
+
+if __name__ == "__main__":
+    run_resilient_rag_system()
+
+# Expected output trace:
+#
+# 🚀 Starting Resilient RAG Agent...
+#
+# ---NODE: Retrieving documents---
+# ---TOOL: Retrieving documents for query: 'info on langgraph'---
+# ---TOOL: Retrieval failed. No relevant documents found.---
+# --- STEP: Node 'retrieve' ---
+# State updated: {'documents': [], 'retry_count': 1}
+#
+# ---NODE: Grading retrieval---
+# Grading: Documents are NOT acceptable.
+# --- STEP: Node 'grade_retrieval' ---
+# State updated: {'documents_are_good': False}
+#
+# ---ROUTER: After grading---
+# Decision: Rewrite query.
+# ---NODE: Rewriting query---
+# New query: What is the LangGraph library for LLM applications?
+# --- STEP: Node 'rewrite_query' ---
+# State updated: {'messages': [...], 'current_query': '...'}
+#
+# ---NODE: Retrieving documents---
+# ---TOOL: Retrieving documents for query: 'What is the LangGraph library for LLM applications?'---
+# --- STEP: Node 'retrieve' ---
+# State updated: {'documents': [...], 'retry_count': 2}
+#
+# ---NODE: Grading retrieval---
+# Grading: Documents are acceptable.
+# --- STEP: Node 'grade_retrieval' ---
+# State updated: {'documents_are_good': True}
+#
+# ---ROUTER: After grading---
+# Decision: Generate answer.
+# ---NODE: Generating answer---
+# --- STEP: Node 'generate' ---
+# State updated: {'messages': [...], 'generation': '...'}
+#
+# --- STEP: Node '__end__' ---
+# ...
+#
+# ✅ Resilient RAG Agent finished.
+# Final Generation: LangGraph is a library for building stateful...
+</code></pre>
+                </div>
+            </div>
+        </section>
+        
+        <section id="code-testing" class="section">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center">Bonus: Testing Code Snippets</h2>
+                <p>Here are example code snippets using `pytest` and `unittest.mock` to demonstrate how you would test the components of the Resilient RAG Agent. This illustrates the unit testing and integration testing strategies discussed earlier.</p>
+                <div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto">
+                <button class="code-copy-button" onclick="copyCode(this)">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zM-1 7a.5.5 0 0 1 .5-.5h15a.5.5 0 0 1 0 1h-15A.5.5 0 0 1-1 7z"/></svg>
+                </button>
+<pre><code>
+################################################################################
+#
+#                    LANGGRAPH PRODUCTION GUIDE - EXAMPLE 4
+#
+#                  TESTING STRATEGIES FOR LANGGRAPH APPS
+#
+# This file contains example tests for the Resilient RAG Agent using pytest.
+# It is meant to be run with the pytest framework (`pip install pytest`).
+#
+# Key Concepts Illustrated:
+# 1.  Unit Testing a Node: Testing the `grade_retrieval_node` in isolation.
+# 2.  Unit Testing a Router: Testing the `router_after_grading` logic.
+# 3.  Integration Testing a Path: Testing a specific flow of the compiled graph.
+# 4.  Mocking: Using `unittest.mock.patch` to control external dependencies.
+#
+################################################################################
+
+import pytest
+from unittest.mock import patch
+
+# Assume the code from the Resilient RAG Agent example is in a file named `rag_agent.py`
+from rag_agent import (
+    ResilientRAGState,
+    grade_retrieval_node,
+    router_after_grading,
+    resilient_rag_app,
+)
+
+# --- 1. Unit Test for a Simple Node ---
+
+def test_grade_retrieval_node_good_docs():
+    """
+    Tests the grade_retrieval_node when documents are present.
+    """
+    state = ResilientRAGState(documents=["doc1", "doc2"])
+    result = grade_retrieval_node(state)
+    assert result == {"documents_are_good": True}
+
+def test_grade_retrieval_node_no_docs():
+    """
+    Tests the grade_retrieval_node when no documents are found.
+    """
+    state = ResilientRAGState(documents=[])
+    result = grade_retrieval_node(state)
+    assert result == {"documents_are_good": False}
+
+# --- 2. Unit Tests for a Router Function ---
+
+def test_router_after_grading_is_good():
+    """
+    Tests the router when documents have been graded as good.
+    """
+    state = ResilientRAGState(documents_are_good=True)
+    decision = router_after_grading(state)
+    assert decision == "generate"
+
+def test_router_after_grading_is_bad_first_try():
+    """
+    Tests the router when documents are bad, but it's the first retry.
+    """
+    state = ResilientRAGState(documents_are_good=False, retry_count=1)
+    decision = router_after_grading(state)
+    assert decision == "rewrite"
+
+def test_router_after_grading_is_bad_max_retries():
+    """
+    Tests the router when documents are bad and max retries have been reached.
+    """
+    state = ResilientRAGState(documents_are_good=False, retry_count=2)
+    decision = router_after_grading(state)
+    assert decision == "give_up"
+    
+# --- 3. Integration Test for the Compiled Graph ---
+
+# We use mocking to control the behavior of the external tool `retrieve_documents`
+# and the LLM. This makes the test deterministic.
+
+@patch('rag_agent.retrieve_documents')
+@patch('rag_agent.llm')
+def test_rag_app_success_path(mock_llm, mock_retrieve):
+    """
+    Tests the end-to-end success path of the RAG agent.
+    We mock the retriever to return good documents on the first try.
+    We mock the LLM to return a predictable generated answer.
+    """
+    # Configure mocks
+    mock_retrieve.invoke.return_value = ["Good doc 1", "Good doc 2"]
+    mock_llm.invoke.return_value = AIMessage(content="This is the final answer.")
+    
+    query = "test query"
+    initial_state = {
+        "messages": [HumanMessage(content=query)],
+        "original_query": query,
+        "current_query": query,
+    }
+    
+    # Run the full graph
+    final_state = resilient_rag_app.invoke(initial_state)
+    
+    # Assertions
+    mock_retrieve.invoke.assert_called_once_with({"query": "test query"})
+    assert final_state["generation"] == "This is the final answer."
+    assert final_state["retry_count"] == 1 # It should succeed on the first attempt
+
+@patch('rag_agent.retrieve_documents')
+@patch('rag_agent.llm')
+def test_rag_app_self_correction_path(mock_llm, mock_retrieve):
+    """
+    Tests the end-to-end self-correction path.
+    The retriever first fails, then succeeds after the query is rewritten by the LLM.
+    """
+    # Configure mocks
+    # First call to retrieve fails, second call succeeds.
+    mock_retrieve.invoke.side_effect = [
+        [], # First call returns no docs
+        ["Corrected doc 1"], # Second call succeeds
+    ]
+    # First call to LLM rewrites the query, second call generates the answer.
+    mock_llm.invoke.side_effect = [
+        AIMessage(content="rewritten query"),
+        AIMessage(content="Final answer from corrected docs."),
+    ]
+
+    query = "bad query"
+    initial_state = {
+        "messages": [HumanMessage(content=query)],
+        "original_query": query,
+        "current_query": query,
+    }
+
+    final_state = resilient_rag_app.invoke(initial_state)
+
+    # Assertions
+    assert mock_retrieve.invoke.call_count == 2
+    assert mock_llm.invoke.call_count == 2
+    assert final_state["current_query"] == "rewritten query"
+    assert final_state["generation"] == "Final answer from corrected docs."
+    assert final_state["retry_count"] == 2
+
+# To run these tests:
+# 1. Save the RAG agent code as `rag_agent.py`.
+# 2. Save this test code as `test_rag_agent.py`.
+# 3. Run `pytest` in your terminal in the same directory.
+</code></pre>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const openSidebarBtn = document.getElementById('open-sidebar');
+        const sidebarToggles = document.querySelectorAll('.sidebar-toggle');
+        const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+        function openSidebar() { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); }
+        function closeSidebar() { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); }
+
+        openSidebarBtn.addEventListener('click', (e) => { e.stopPropagation(); openSidebar(); });
+        overlay.addEventListener('click', closeSidebar);
+        sidebarLinks.forEach(link => { link.addEventListener('click', closeSidebar); });
+        
+        sidebarToggles.forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const submenu = toggle.nextElementSibling;
+                const icon = toggle.querySelector('svg');
+                if (submenu.style.maxHeight) {
+                    submenu.style.maxHeight = null;
+                    icon.style.transform = 'rotate(0deg)';
+                } else {
+                    document.querySelectorAll('.sidebar-submenu').forEach(sub => {
+                        sub.style.maxHeight = null;
+                        sub.previousElementSibling.querySelector('svg').style.transform = 'rotate(0deg)';
+                    });
+                    submenu.style.maxHeight = submenu.scrollHeight + "px";
+                    icon.style.transform = 'rotate(180deg)';
+                } 
+            });
+        });
+
+        const sections = document.querySelectorAll('.section');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) { entry.target.classList.add('visible'); }
+            });
+        }, { threshold: 0.1 });
+        sections.forEach(section => { observer.observe(section); });
+
+        function copyCode(button) {
+            const pre = button.parentElement.querySelector('pre');
+            const code = pre.innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                button.innerHTML = '✓ Copied!';
+                setTimeout(() => {
+                    button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zM-1 7a.5.5 0 0 1 .5-.5h15a.5.5 0 0 1 0 1h-15A.5.5 0 0 1-1 7z"/></svg>';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+    </script>
+</body>
+</html>

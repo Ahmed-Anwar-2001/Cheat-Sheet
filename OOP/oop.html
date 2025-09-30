@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ultimate Guide to OOP in Python</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #eef0f4;
+            --text-color: #334155;
+            --header-color: #1e293b;
+            --shadow-light: #ffffff;
+            --shadow-dark: #d1d9e6;
+            --accent-color: #3b82f6;
+            --accent-color-dark: #2563eb;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        /* Claymorphism Styles & Hover Effects */
+        .clay-card {
+            background-color: var(--bg-color);
+            border-radius: 20px;
+            box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        @media (hover: hover) {
+            .clay-card:hover {
+                transform: translateY(-8px) scale(1.01);
+                box-shadow: 16px 16px 32px var(--shadow-dark), -16px -16px 32px var(--shadow-light);
+            }
+        }
+        
+        .clay-card-inset {
+             background-color: var(--bg-color);
+             border-radius: 20px;
+             box-shadow: inset 8px 8px 16px var(--shadow-dark), inset -8px -8px 16px var(--shadow-light);
+        }
+        
+        .clay-code {
+            background-color: #e2e5e9;
+            border-radius: 15px;
+            box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--text-color);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 1px solid var(--shadow-dark);
+            min-height: 100vh;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        h1, h2, h3, h4 {
+            font-weight: 700;
+            color: var(--header-color);
+        }
+
+        .content-prose {
+            max-width: 850px;
+            line-height: 1.75;
+        }
+        
+        .content-prose h3 { margin-top: 2.5rem; margin-bottom: 1.25rem; }
+        .content-prose h4 { margin-top: 2rem; margin-bottom: 1rem; }
+        .content-prose p { margin-bottom: 1rem; }
+        .content-prose ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1rem; }
+        .content-prose code {
+            background-color: #e2e5e9;
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            border-radius: 3px;
+        }
+        .comparison-table {
+            width: 100%;
+            margin-top: 1.5rem;
+            border-collapse: collapse;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid var(--shadow-dark);
+            padding: 0.75rem;
+            text-align: left;
+        }
+        .comparison-table th {
+            background-color: #e2e5e9;
+        }
+
+        /* Sidebar Styles */
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+            scrollbar-width: thin;
+            scrollbar-color: var(--shadow-dark) var(--bg-color);
+        }
+        #sidebar::-webkit-scrollbar { width: 8px; }
+        #sidebar::-webkit-scrollbar-track { background: var(--bg-color); }
+        #sidebar::-webkit-scrollbar-thumb {
+            background-color: var(--shadow-dark);
+            border-radius: 10px;
+            border: 2px solid var(--bg-color);
+        }
+
+        .sidebar-submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out;
+        }
+        .sidebar-link, .sidebar-toggle, #open-sidebar {
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        @media (hover: hover) {
+            .sidebar-link:hover {
+                background-color: var(--accent-color) !important;
+                color: white;
+            }
+        }
+        
+        /* FIX: Added media query for mobile responsiveness */
+        @media (max-width: 767px) {
+            .section {
+                /* Let content define the height on smaller screens instead of forcing full viewport height */
+                min-height: auto;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <aside id="sidebar" class="fixed top-0 left-0 z-50 h-screen w-4/5 max-w-[288px] sm:w-72 bg-[#eef0f4] shadow-[10px_0px_20px_#d1d9e6] transform -translate-x-full overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold text-slate-800">🧭 Navigation</h2>
+                <button id="close-sidebar" class="p-2 rounded-md hover:bg-slate-300/50">
+                    <svg class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <nav class="space-y-4">
+                <div>
+                    <button class="sidebar-toggle w-full text-left font-bold text-lg text-slate-700 flex justify-between items-center p-2 rounded-lg hover:bg-slate-300/50">
+                        <span>🐍 Python OOP</span>
+                        <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="sidebar-submenu pl-4 mt-2">
+                        <h4 class="font-semibold text-slate-600 mt-2 mb-1">Foundations</h4>
+                        <ul class="space-y-1">
+                            <li><a href="#intro" class="sidebar-link block p-2 rounded-lg">Introduction</a></li>
+                            <li><a href="#basics" class="sidebar-link block p-2 rounded-lg">Classes & Objects</a></li>
+                            <li><a href="#methods" class="sidebar-link block p-2 rounded-lg">Method Types</a></li>
+                            <li><a href="#pillars-summary" class="sidebar-link block p-2 rounded-lg">The Four Pillars</a></li>
+                        </ul>
+                         <h4 class="font-semibold text-slate-600 mt-3 mb-1">In-Depth Pillars</h4>
+                         <ul class="space-y-1">
+                            <li><a href="#encapsulation" class="sidebar-link block p-2 rounded-lg">1. Encapsulation</a></li>
+                            <li><a href="#inheritance" class="sidebar-link block p-2 rounded-lg">2. Inheritance</a></li>
+                            <li><a href="#polymorphism" class="sidebar-link block p-2 rounded-lg">3. Polymorphism</a></li>
+                            <li><a href="#abstraction" class="sidebar-link block p-2 rounded-lg">4. Abstraction</a></li>
+                        </ul>
+                        <h4 class="font-semibold text-slate-600 mt-3 mb-1">Advanced Topics</h4>
+                         <ul class="space-y-1">
+                            <li><a href="#magic-methods" class="sidebar-link block p-2 rounded-lg">Magic Methods</a></li>
+                            <li><a href="#dataclasses" class="sidebar-link block p-2 rounded-lg">Dataclasses</a></li>
+                            <li><a href="#metaclasses" class="sidebar-link block p-2 rounded-lg">Metaclasses</a></li>
+                            <li><a href="#design-patterns" class="sidebar-link block p-2 rounded-lg">Design Patterns</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                     <a href="AI_Agent/main.html" class="w-full text-left font-bold text-lg text-slate-700 flex justify-between items-center p-2 rounded-lg hover:bg-slate-300/50">
+                        <span>🤖 AI Agents</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </aside>
+
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <header class="sticky top-0 z-30 p-4 bg-eef0f4/80 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+             <button id="open-sidebar" class="p-2 rounded-md hover:bg-slate-300/50">
+                <svg class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <h1 class="text-xl font-bold text-slate-700 text-center flex-grow">Python OOP</h1>
+            <div class="w-8"></div> </div>
+    </header>
+
+    <main id="main-content">
+        <section id="intro" class="section text-center px-4 py-16 md:px-8 md:py-24"><div class="max-w-4xl"><h1 class="text-4xl sm:text-5xl lg:text-7xl font-bold text-slate-800 mb-4">📖 Object-Oriented Programming</h1><p class="text-lg sm:text-xl md:text-2xl text-slate-600 mb-8">A Complete Guide to Structuring Code in Python</p><div class="clay-card-inset p-6 text-left"><p>Object-Oriented Programming (OOP) is a programming paradigm based on the concept of "objects", which can contain data in the form of fields (often known as attributes or properties), and code, in the form of procedures (often known as methods). This guide provides a complete, step-by-step examination of every core principle, from the fundamentals to advanced concepts, ensuring a thorough understanding for both beginners and those looking to revise.</p></div></div></section>
+
+        <section id="basics" class="section px-4 py-16 md:px-8 md:py-24">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">🧱 The Building Blocks: Classes & Objects</h2>
+                <p>Before diving into the pillars of OOP, we must have a rock-solid understanding of its two fundamental concepts: the **class** and the **object**. Everything in OOP is built upon this foundation. This paradigm shifts our thinking from a sequence of procedures to a collection of interacting objects, where each object has its own state and behavior.</p>
+                <h3 class="text-2xl sm:text-3xl font-semibold">📜 The Class: A Blueprint</h3>
+                <p>A class is a blueprint, a template, or a recipe for creating objects. It doesn't represent a concrete thing itself, but rather defines the structure and behavior that its objects will have. A class logically groups data and functions. The data components are called **attributes**, and the functions are called **methods**. Think of an architect's blueprint for a house: it details the number of rooms, the dimensions, and the materials, but it is not the house itself.</p>
+                <h3 class="text-2xl sm:text-3xl font-semibold">🏠 The Object: An Instance</h3>
+                <p>An object is a concrete instance created from a class, a process known as **instantiation**. Using the blueprint analogy, an object is the actual house built from the architect's plans. You can build many houses (objects) from the same blueprint (class), and each one is a distinct entity in memory, even if they share the same structure. Each object has its own state (the values of its attributes) but shares the same behaviors (the class methods).</p>
+                <h3 class="text-2xl sm:text-3xl font-semibold">🛠️ The `__init__` Method (The Constructor)</h3>
+                <p>The `__init__` method is a special "dunder" (double underscore) method that serves as the constructor for a class. It is automatically called when you create a new object (instance) from the class. Its primary job is to initialize the object's attributes, setting its initial state. It's where you pass the initial data required to create a valid object.</p>
+                <h3 class="text-2xl sm:text-3xl font-semibold">👉 The `self` Parameter</h3>
+                <p>The `self` parameter is arguably the most crucial concept to grasp in Python OOP. It is a reference to the current instance of the class. When you call a method on an object like `my_dog.bark()`, Python automatically passes the object `my_dog` as the first argument to the `bark` method. By convention, this parameter is always named `self`. It's how an object can access its own attributes and methods, distinguishing its data from another object of the same class.</p>
+                <div class="md:col-span-2 clay-card p-4 sm:p-8 mt-8">
+                    <h3 class="text-xl sm:text-2xl font-semibold text-center mb-4">🚗 Detailed Example: The `Car` Class</h3>
+                    <div class="clay-code p-4 sm:p-6 text-sm overflow-x-auto"><pre><code>class Car:
+    # Class Attribute: This is shared by ALL instances of the Car class.
+    num_wheels = 4
+
+    # The constructor method
+    def __init__(self, make, model, year, color):
+        # These are instance attributes. They are unique to each Car object.
+        self.make = make
+        self.model = model
+        self.year = year
+        self.color = color
+        self.is_running = False # Default state
+        self.speed = 0
+
+    # An instance method to describe the car
+    def describe(self):
+        return f"This is a {self.year} {self.color} {self.make} {self.model}."
+
+    # An instance method to change the object's state
+    def start_engine(self):
+        if not self.is_running:
+            self.is_running = True
+            print(f"The {self.make} {self.model}'s engine is now running.")
+        else:
+            print("The engine is already running.")
+
+    # Another instance method
+    def accelerate(self, amount):
+        if self.is_running:
+            self.speed += amount
+            print(f"Accelerating to {self.speed} mph.")
+        else:
+            print("You need to start the engine first!")
+
+# --- Creating and using objects (instances) ---
+my_mustang = Car("Ford", "Mustang", 2022, "Red")
+neighbors_camry = Car("Toyota", "Camry", 2020, "Silver")
+
+# Accessing instance attributes
+print(f"My car is a {my_mustang.make}.") # -> My car is a Ford.
+print(f"My neighbor's car is a {neighbors_camry.make}.") # -> My neighbor's car is a Toyota.
+
+# Accessing the shared class attribute
+print(f"My Mustang has {my_mustang.num_wheels} wheels.") # -> My Mustang has 4 wheels.
+print(f"The Camry also has {neighbors_camry.num_wheels} wheels.") # -> The Camry also has 4 wheels.
+
+# Calling instance methods
+print(my_mustang.describe()) # -> This is a 2022 Red Ford Mustang.
+my_mustang.start_engine() # -> The Ford Mustang's engine is now running.
+my_mustang.accelerate(50) # -> Accelerating to 50 mph.</code></pre></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="methods" class="section px-4 py-16 md:px-8 md:py-24">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">⚙️ Method Types: Instance, Class, and Static</h2>
+                <p>A key aspect of designing robust classes is understanding the three types of methods available in Python. Each has a distinct purpose and receives a different first argument, which dictates what data it can access and modify. Choosing the right method type makes your code more logical and easier to maintain.</p>
+                <h3 class="text-2xl sm:text-3xl font-semibold">👤 Instance Methods</h3>
+                <p>This is the most common method type. It operates on an instance of the class and receives the instance itself as the first argument (conventionally named `self`). Instance methods can freely access and modify instance attributes (`self.attribute`) and can also access class attributes (`self.__class__.attribute`). Their primary purpose is to manage the state of a specific object.</p>
+                <h3 class="text-2xl sm:text-3xl font-semibold">🏛️ Class Methods</h3>
+                <p>A class method is bound to the class, not the instance. It receives the class itself as the first argument (conventionally named `cls`). Class methods can't access instance-specific attributes (like `self.name`), but they can access and modify class-level attributes. They are often used for factory methods that create instances of the class in alternative ways (e.g., from a file or a different data format).</p>
+                <h3 class="text-2xl sm:text-3xl font-semibold">🔧 Static Methods</h3>
+                <p>A static method is essentially a regular function that is namespaced within the class. It doesn't receive the instance (`self`) or the class (`cls`) as an implicit first argument. It cannot modify object state or class state. Static methods are primarily used for utility functions that are logically related to the class but don't depend on it or its instances.</p>
+                <div class="md:col-span-2 clay-card p-4 sm:p-8 mt-8">
+                    <h3 class="text-xl sm:text-2xl font-semibold text-center mb-4">🧑‍💻 Detailed Example: The `Employee` Class</h3>
+                    <div class="clay-code p-4 sm:p-6 text-sm overflow-x-auto"><pre><code>import datetime
+
+class Employee:
+    # Class attribute
+    company_name = "Tech Innovations Inc."
+    raise_amount = 1.04
+
+    def __init__(self, first, last, pay):
+        self.first = first
+        self.last = last
+        self.pay = pay
+
+    # 👤 Regular Instance Method
+    def fullname(self):
+        return f'{self.first} {self.last}'
+
+    def apply_raise(self):
+        self.pay = int(self.pay * self.raise_amount)
+
+    # 🏛️ Class Method (decorator)
+    @classmethod
+    def set_raise_amt(cls, amount):
+        print(f"Setting raise amount to {amount} for all employees.")
+        cls.raise_amount = amount
+
+    # Class method used as an alternative constructor (a factory)
+    @classmethod
+    def from_birth_year(cls, first, last, pay, birth_year):
+        age = datetime.date.today().year - birth_year
+        print(f"Creating employee {first} {last}, who is {age} years old.")
+        return cls(first, last, pay)
+
+    # 🔧 Static Method (decorator)
+    @staticmethod
+    def is_workday(day):
+        # Monday = 0, Sunday = 6
+        if day.weekday() == 5 or day.weekday() == 6:
+            return False
+        return True
+
+# --- Using the methods ---
+emp_1 = Employee('John', 'Doe', 50000)
+emp_2 = Employee('Jane', 'Smith', 60000)
+
+# Calling an instance method
+print(emp_1.fullname()) # -> John Doe
+
+# Calling a class method on the class
+Employee.set_raise_amt(1.05) 
+print(Employee.raise_amount) # -> 1.05
+print(emp_1.raise_amount)    # -> 1.05
+
+# Calling the factory class method
+emp_3 = Employee.from_birth_year('Peter', 'Jones', 70000, 1990)
+print(emp_3.fullname()) # -> Peter Jones
+
+# Calling a static method
+my_date = datetime.date(2025, 9, 30) # A Tuesday
+print(f"Is {my_date} a workday? {Employee.is_workday(my_date)}") # -> True</code></pre></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pillars-summary" class="section px-4 py-16 md:px-8 md:py-24"><div class="w-full max-w-5xl"><div class="text-center mb-12"><h2 class="text-3xl sm:text-4xl font-bold">🏛️ The Four Pillars of OOP</h2><p class="text-lg sm:text-xl text-slate-600 mt-2">Core principles that guide object-oriented design.</p></div><div class="grid grid-cols-1 md:grid-cols-2 gap-8"><div class="clay-card p-8 text-center"><h3 class="text-2xl font-bold mb-2">🛡️ Encapsulation</h3><p>Bundling data and methods together, hiding internal details. This protects data from accidental modification.</p></div><div class="clay-card p-8 text-center"><h3 class="text-2xl font-bold mb-2">🧬 Inheritance</h3><p>Creating a new class (child) that inherits from an existing class (parent). This promotes code reuse.</p></div><div class="clay-card p-8 text-center"><h3 class="text-2xl font-bold mb-2">🎭 Polymorphism</h3><p>Allowing objects of different classes to be treated as objects of a common superclass, enabling a single interface for different data types.</p></div><div class="clay-card p-8 text-center"><h3 class="text-2xl font-bold mb-2">🤫 Abstraction</h3><p>Hiding complex implementation details and showing only the necessary features of an object.</p></div></div></div></section>
+        
+        <section id="encapsulation" class="section px-4 py-16 md:px-8 md:py-24"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">🛡️ Pillar 1: Encapsulation</h2><p>Encapsulation is the practice of **bundling data (attributes) and the methods that operate on that data into a single unit, or "class."** Its primary goal is to hide the internal state of an object from the outside world. Instead of allowing direct access to an object's data, you provide public methods (an "interface") to control and validate access. This prevents unauthorized or accidental modification of an object's state, leading to more robust and predictable code.</p><h3 class="text-2xl sm:text-3xl font-semibold">🔑 Access Specifiers in Python (By Convention)</h3><p>Unlike languages like Java or C++, Python doesn't have strict `public`, `protected`, or `private` keywords. It relies on a developer convention based on naming.</p><h4 class="text-xl sm:text-2xl font-semibold mt-4">1. Public Members</h4><p>Attributes without a leading underscore are public and can be accessed from anywhere. This is the default. It's an open invitation for any part of the code to use this attribute.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Employee:
+    def __init__(self, name, salary):
+        self.name = name
+        self.salary = salary
+emp = Employee("Bob", 50000)
+print(emp.name)</code></pre></div><h4 class="text-xl sm:text-2xl font-semibold mt-4">2. Protected Members</h4><p>Attributes with a **single underscore** (`_`) are protected. This convention signals to other developers: "This is not part of the public API. Feel free to use it within this class and its subclasses, but avoid using it externally." Python does not enforce this, but it's a strong hint.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Company:
+    def __init__(self):
+        self._project = "Project X"</code></pre></div><h4 class="text-xl sm:text-2xl font-semibold mt-4">3. Private Members</h4><p>Attributes with a **double underscore** (`__`) are private. Python performs **name mangling** on them (changing `__balance` to `_ClassName__balance`) to make them hard to access from outside the class. This is not for security, but to prevent naming conflicts in subclasses.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class BankAccount:
+    def __init__(self, initial_balance):
+        self.__balance = initial_balance
+    def get_balance(self):
+        return self.__balance
+acc = BankAccount(1000)
+print(acc.get_balance()) # -> 1000</code></pre></div><h3 class="text-2xl sm:text-3xl font-semibold">✨ Getters, Setters, and Properties</h3><p>A more "Pythonic" way to manage access to attributes is with the `@property` decorator. This allows you to define getter, setter, and deleter methods for an attribute while still accessing it like a public member, combining clean syntax with controlled access. This is the ideal way to implement encapsulation when you need to run code whenever an attribute is accessed or modified.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Employee:
+    def __init__(self, name, salary):
+        self.name = name
+        self._salary = salary # "Protected"
+
+    @property
+    def salary(self):
+        """Getter for salary"""
+        return f"${self._salary:,.2f}"
+
+    @salary.setter
+    def salary(self, new_salary):
+        """Setter for salary with validation"""
+        if new_salary < 0:
+            raise ValueError("Salary cannot be negative!")
+        self._salary = new_salary
+
+emp = Employee("Alice", 50000)
+print(emp.salary) # -> $50,000.00 (Calls the getter)
+emp.salary = 60000 # Calls the setter
+print(emp.salary) # -> $60,000.00</code></pre></div></div></section>
+
+        <section id="inheritance" class="section px-4 py-16 md:px-8 md:py-24"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">🧬 Pillar 2: Inheritance</h2><p>Inheritance is a mechanism that allows a new class (**subclass** or **child class**) to inherit properties and methods from an existing class (**superclass** or **parent class**). This promotes an "is-a" relationship (a `Dog` *is an* `Animal`) and is a cornerstone of code reusability. It allows you to create a hierarchy of classes, where more specific classes reuse the generic code from their parents.</p><h3 class="text-2xl sm:text-3xl font-semibold">📜 Types of Inheritance</h3><h4 class="text-xl sm:text-2xl font-semibold mt-4">1. Single Inheritance</h4><p>This is the most straightforward type of inheritance where a child class inherits from a single parent class.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Animal:
+    def eat(self): print("Eating.")
+class Dog(Animal):
+    def bark(self): print("Barking.")
+d = Dog(); d.eat(); d.bark()</code></pre></div><h4 class="text-xl sm:text-2xl font-semibold mt-4">2. Multilevel Inheritance</h4><p>In multilevel inheritance, a class inherits from a child class, creating a "chain" of inheritance (e.g., Grandparent -> Parent -> Child).</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Grandparent:
+    def talent1(self): print("Singing")
+class Parent(Grandparent):
+    def talent2(self): print("Coding")
+class Child(Parent):
+    def talent3(self): print("Gaming")
+c = Child(); c.talent1(); c.talent2(); c.talent3()</code></pre></div><h4 class="text-xl sm:text-2xl font-semibold mt-4">3. Multiple Inheritance & MRO</h4><p>A child class inherits from two or more parent classes. Python uses the **Method Resolution Order (MRO)** to determine the search path for methods and attributes, preventing ambiguity issues like the "Diamond Problem".</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Father:
+    def skill(self): print("Gardening")
+class Mother:
+    def skill(self): print("Cooking")
+class Child(Father, Mother): pass
+# MRO is Child -> Father -> Mother -> object. Father's `skill` is called.
+c = Child(); c.skill() # -> Gardening</code></pre></div><h3 class="text-2xl sm:text-3xl font-semibold">🦸 The `super()` Function</h3><p>The `super()` function allows a subclass to call methods from its superclass. It's crucial for extending functionality rather than just overriding it, and it correctly follows the MRO in complex inheritance structures.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Employee:
+    def __init__(self, name, emp_id):
+        self.name = name
+        self.id = emp_id
+    def display_info(self):
+        return f"ID: {self.id}, Name: {self.name}"
+
+class Manager(Employee):
+    def __init__(self, name, emp_id, department):
+        super().__init__(name, emp_id) # Initialize parent
+        self.department = department
+    def display_info(self):
+        # Extend parent method
+        base_info = super().display_info()
+        return f"{base_info}, Department: {self.department}"
+mgr = Manager("Bob", "M123", "Engineering")
+print(mgr.display_info())</code></pre></div></div></section>
+
+        <section id="polymorphism" class="section px-4 py-16 md:px-8 md:py-24"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">🎭 Pillar 3: Polymorphism</h2><p>Polymorphism means "many forms." It is the ability of an object to take on many forms, allowing a single interface (like a function or a method call) to handle objects of different classes. The specific action that occurs depends on the actual type of the object at runtime. This allows for great flexibility and decoupling in your code.</p><h3 class="text-2xl sm:text-3xl font-semibold">🔄 Method Overriding</h3><p>Method overriding occurs when a subclass provides a specific implementation for a method that is already defined in its parent class. The method signature (name and parameters) must be the same. This is a form of runtime polymorphism because the method that gets called is determined when the program is running.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Bird:
+    def flight(self): print("Most birds can fly.")
+class Ostrich(Bird):
+    def flight(self): print("Ostriches cannot fly.")
+ostrich = Ostrich(); ostrich.flight()</code></pre></div><h3 class="text-2xl sm:text-3xl font-semibold">➕ Method Overloading (Simulated)</h3><p>Method overloading is defining a method with the same name but with a different number or type of parameters. Python does not support traditional method overloading because of its dynamic typing. The last defined method with a given name is the only one that exists. However, we can simulate this behavior using default arguments or variable-length arguments (`*args`, `**kwargs`).</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Calculator:
+    def add(self, a, b, c=0): return a + b + c
+calc = Calculator()
+print(calc.add(2, 3))       # -> 5
+print(calc.add(2, 3, 5))    # -> 10</code></pre></div>
+<h3 class="text-2xl sm:text-3xl font-semibold">🆚 Overriding vs. Overloading: The Key Differences</h3>
+<p>Understanding the distinction between these two concepts is critical for interviews and writing clean, intention-driven code.</p>
+<table class="comparison-table">
+    <thead>
+        <tr>
+            <th>Feature</th>
+            <th>Method Overriding</th>
+            <th>Method Overloading</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td><strong>Purpose</strong></td><td>To provide a specific implementation of a parent method in a child class.</td><td>To have multiple methods with the same name but different parameters within one class.</td></tr>
+        <tr><td><strong>Scope</strong></td><td>Occurs in two different classes (parent and child).</td><td>Occurs within the same class.</td></tr>
+        <tr><td><strong>Method Signature</strong></td><td>Method name, parameters, and return type must be the same.</td><td>Method name is the same, but parameters must be different.</td></tr>
+        <tr><td><strong>Relationship</strong></td><td>Inheritance is required.</td><td>No specific relationship needed.</td></tr>
+        <tr><td><strong>Python Support</strong></td><td>Fully supported.</td><td>Not directly supported, but can be simulated.</td></tr>
+    </tbody>
+</table>
+<h3 class="text-2xl sm:text-3xl font-semibold">🦆 Duck Typing</h3><p>The heart of Python's polymorphism is "duck typing." The idea is: if it walks like a duck and quacks like a duck, then it must be a duck. Python doesn't care about an object's explicit type, only if it has the required methods or attributes to perform a given operation. This allows for incredibly flexible and decoupled functions that can operate on any object that satisfies the expected interface.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Duck:
+    def quack(self): print("Quack!")
+class Person:
+    def quack(self): print("I'm quacking like a duck!")
+def make_it_quack(obj):
+    obj.quack()
+make_it_quack(Duck())
+make_it_quack(Person())</code></pre></div></div></section>
+        
+        <section id="abstraction" class="section px-4 py-16 md:px-8 md:py-24"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">🤫 Pillar 4: Abstraction</h2><p>Abstraction is the concept of hiding complex implementation details and exposing only the essential features of an object. Its goal is to manage complexity. An abstract class acts as a template or "contract" that other classes must follow. It's achieved in Python using **Abstract Base Classes (ABCs)** from the `abc` module.</p><p>An abstract class defines a common interface for its subclasses. You cannot create an instance of an abstract class itself; it must be inherited by a concrete class that provides implementations for all the abstract methods.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>from abc import ABC, abstractmethod
+class FileParser(ABC):
+    def __init__(self, filepath):
+        self.filepath = filepath
+    @abstractmethod
+    def parse(self):
+        pass
+class CSVParser(FileParser):
+    def parse(self):
+        print(f"Parsing CSV file at {self.filepath}...")
+        return "CSV Data"
+class JSONParser(FileParser):
+    def parse(self):
+        print(f"Parsing JSON file at {self.filepath}...")
+        return "JSON Data"
+parsers = [CSVParser("data.csv"), JSONParser("data.json")]
+for parser in parsers:
+    data = parser.parse()</code></pre></div></div></section>
+
+        <section id="magic-methods" class="section px-4 py-16 md:px-8 md:py-24"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">🪄 Advanced Topic: Magic Methods</h2><p>Magic methods, or "dunder" methods (double underscore), are special methods that you can define to add "magic" to your classes. They're not meant to be called directly by you, but are invoked by Python in response to certain operations, allowing your custom objects to integrate seamlessly with the language's syntax.</p><h3 class="text-2xl sm:text-3xl font-semibold">🔡 `__str__` and `__repr__`</h3><p>`__str__` is for creating a user-friendly output and is called by the `print()` and `str()` functions. The goal is readability. `__repr__` is for creating an unambiguous developer-friendly representation of the object, which should ideally be valid Python code that could recreate the object. It's the fallback for `__str__`.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Book:
+    def __init__(self, title, author):
+        self.title = title
+        self.author = author
+    def __str__(self):
+        return f"'{self.title}' by {self.author}"
+    def __repr__(self):
+        return f"Book(title='{self.title}', author='{self.author}')"
+book = Book("Dune", "Frank Herbert")
+print(book) # Calls __str__
+print(repr(book)) # Calls __repr__</code></pre></div><h3 class="text-2xl sm:text-3xl font-semibold">🧮 Operator Overloading</h3><p>You can define how operators like `+`, `-`, `*` work with your objects by implementing methods like `__add__`, `__sub__`, `__mul__`, etc. This makes your custom objects more intuitive to work with.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Vector:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    def __add__(self, other):
+        return Vector(self.x + other.x, self.y + other.y)
+    def __repr__(self):
+        return f"Vector({self.x}, {self.y})"
+v1 = Vector(2, 4); v2 = Vector(3, 5); v3 = v1 + v2
+print(v3) # -> Vector(5, 9)</code></pre></div><h3 class="text-2xl sm:text-3xl font-semibold">⚖️ Comparison Magic Methods</h3><p>Implement comparison operators (`<`, `>`, `==`, etc.) with `__lt__`, `__gt__`, `__eq__`. The `@functools.total_ordering` decorator can automatically generate all rich comparison methods if you define at least `__eq__` and one of the others (like `__lt__`).</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>from functools import total_ordering
+
+@total_ordering
+class Product:
+    def __init__(self, name, price):
+        self.name = name
+        self.price = price
+    def __eq__(self, other):
+        return self.price == other.price
+    def __lt__(self, other):
+        return self.price < other.price
+
+p1 = Product("Laptop", 1200)
+p2 = Product("Mouse", 50)
+print(p1 > p2)  # True, __lt__ and @total_ordering handle this
+print(p1 == p2) # False</code></pre></div><h3 class="text-2xl sm:text-3xl font-semibold">📞 `__call__`: Callable Objects</h3><p>The `__call__` method allows an instance of a class to be called as if it were a function, making your objects more dynamic.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Multiplier:
+    def __init__(self, factor):
+        self.factor = factor
+    def __call__(self, value):
+        return self.factor * value
+
+double = Multiplier(2)
+print(double(5)) # -> 10</code></pre></div><h3 class="text-2xl sm:text-3xl font-semibold">📦 Container Emulation</h3><p>Implement methods like `__len__`, `__getitem__`, and `__setitem__` to make your objects behave like built-in containers like lists or dictionaries.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Playlist:
+    def __init__(self):
+        self.songs = []
+    def __len__(self):
+        return len(self.songs)
+    def __getitem__(self, index):
+        return self.songs[index]
+    def __setitem__(self, index, value):
+        self.songs[index] = value
+    def add_song(self, song):
+        self.songs.append(song)
+pl = Playlist(); pl.add_song("Bohemian Rhapsody")
+print(len(pl)) # -> 1
+print(pl[0]) # -> Bohemian Rhapsody</code></pre></div><h3 class="text-2xl sm:text-3xl font-semibold">🌐 Context Management (`__enter__`, `__exit__`)</h3><p>These methods allow your object to be used with the `with` statement, which is great for managing resources like files or network connections. It guarantees that setup (`__enter__`) and teardown (`__exit__`) code is executed, even if errors occur.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class FileManager:
+    def __init__(self, filename, mode):
+        self.filename = filename
+        self.mode = mode
+        self.file = None
+    def __enter__(self):
+        print(f"Opening {self.filename}...")
+        self.file = open(self.filename, self.mode)
+        return self.file # This is what 'as f' gets
+    def __exit__(self, exc_type, exc_value, traceback):
+        print(f"Closing {self.filename}...")
+        self.file.close()
+
+with FileManager('test.txt', 'w') as f:
+    f.write('Hello, context manager!')
+# File is automatically closed here</code></pre></div></div></section>
+        
+        <section id="dataclasses" class="section px-4 py-16 md:px-8 md:py-24">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">📦 Advanced Topic: Dataclasses</h2>
+                <p>Introduced in Python 3.7, dataclasses are a way to automatically add special methods like `__init__()`, `__repr__()`, and `__eq__()` to your classes. They are excellent for creating classes that primarily store data, reducing a significant amount of boilerplate code and making the class definition cleaner and more declarative.</p>
+                <h3 class="text-2xl sm:text-3xl font-semibold">😴 Standard Class vs. 😎 Dataclass</h3>
+                <p>Here's how much boilerplate code a dataclass can save you. You declare the fields with type hints, and the decorator handles the rest.</p>
+                <div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code># Standard Way
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    def __repr__(self):
+        return f"Point(x={self.x}, y={self.y})"
+    def __eq__(self, other):
+        return (self.x, self.y) == (other.x, other.y)
+
+# Dataclass Way
+from dataclasses import dataclass
+
+@dataclass
+class PointDC:
+    x: int
+    y: int
+
+p1 = PointDC(1, 2)
+print(p1) # -> PointDC(x=1, y=2) (repr is automatic!)
+p2 = PointDC(1, 2)
+print(p1 == p2) # -> True (eq is automatic!)</code></pre></div>
+            </div>
+        </section>
+
+        <section id="metaclasses" class="section px-4 py-16 md:px-8 md:py-24">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">🌌 Advanced Topic: Metaclasses</h2>
+                <p>"Metaclasses are deeper magic than 99% of users should ever worry about." - Tim Peters. A metaclass is a class whose instances are classes. Just like a class defines how an object behaves, a metaclass defines how a class behaves. They are used to modify or inject behavior into classes at the moment they are created, which is useful for creating frameworks, APIs, and libraries like Django or SQLAlchemy.</p>
+                <div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code># A simple metaclass that ensures all subclasses have a certain attribute
+class MustHaveAttributeMeta(type):
+    def __new__(cls, name, bases, dct):
+        if 'required_attribute' not in dct:
+            raise TypeError(f"Class {name} must have 'required_attribute'")
+        return super().__new__(cls, name, bases, dct)
+
+class MyBaseClass(metaclass=MustHaveAttributeMeta):
+    pass
+
+# This will fail with a TypeError
+# class Fails(MyBaseClass):
+#     pass
+
+# This will succeed
+class Works(MyBaseClass):
+    required_attribute = "I exist!"
+
+print("Class 'Works' created successfully.")
+</code></pre></div>
+            </div>
+        </section>
+
+        <section id="design-patterns" class="section px-4 py-16 md:px-8 md:py-24">
+            <div class="clay-card p-6 md:p-12 content-prose">
+                <h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">🧩 Advanced Topic: Design Patterns</h2>
+                <p>Design patterns are reusable, proven solutions to commonly occurring problems within a given context in software design. They are not specific algorithms, but rather general concepts and arrangements of classes and objects to solve a problem in a flexible and maintainable way.</p>
+                <h3 class="text-2xl sm:text-3xl font-semibold">👶 Creational Pattern: Singleton</h3><p>**Problem:** You need to ensure that a class has only one instance and provide a single, global point of access to it. This is useful for things like database connections or logging services.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Singleton:
+    _instance = None
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(Singleton, cls).__new__(cls)
+        return cls._instance
+a = Singleton(); b = Singleton(); print(a is b) # -> True</code></pre></div>
+                <h3 class="text-2xl sm:text-3xl font-semibold">🏭 Creational Pattern: Factory</h3><p>**Problem:** You need to create objects, but you want to let subclasses decide which class to instantiate. The Factory Method pattern lets a class defer instantiation to subclasses.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Dog:
+    def speak(self): return "Woof!"
+class Cat:
+    def speak(self): return "Meow!"
+def get_pet(pet="dog"):
+    pets = dict(dog=Dog(), cat=Cat())
+    return pets[pet]
+d = get_pet("dog"); print(d.speak()) # -> Woof!</code></pre></div>
+                <h3 class="text-2xl sm:text-3xl font-semibold">👷 Creational Pattern: Builder</h3><p>**Problem:** You need to construct a complex object step by step. The Builder pattern separates the construction of a complex object from its representation, allowing the same construction process to create different representations.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Pizza:
+    def __init__(self): self.parts = []
+    def add(self, part): self.parts.append(part)
+    def __str__(self): return f"Pizza with: {', '.join(self.parts)}"
+
+class PizzaBuilder:
+    def __init__(self): self.pizza = Pizza()
+    def add_dough(self): self.pizza.add("dough"); return self
+    def add_sauce(self): self.pizza.add("tomato sauce"); return self
+    def add_cheese(self): self.pizza.add("mozzarella"); return self
+    def build(self): return self.pizza
+
+builder = PizzaBuilder()
+margherita = builder.add_dough().add_sauce().add_cheese().build()
+print(margherita)</code></pre></div>
+                <h3 class="text-2xl sm:text-3xl font-semibold">🏗️ Structural Pattern: Decorator</h3><p>**Problem:** You want to add new functionality to an object dynamically without altering its class or creating a large number of subclasses.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Text:
+    def render(self): return "Hello"
+class Bold(Text):
+    def __init__(self, wrapped): self._wrapped = wrapped
+    def render(self): return f"&lt;b&gt;{self._wrapped.render()}&lt;/b&gt;"
+simple = Text(); bold_text = Bold(simple); print(bold_text.render()) # -> &lt;b&gt;Hello&lt;/b&gt;</code></pre></div>
+                <h3 class="text-2xl sm:text-3xl font-semibold">🔌 Structural Pattern: Adapter</h3><p>**Problem:** You need to make two incompatible interfaces work together. The Adapter pattern acts as a bridge between them.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Dog:
+    def bark(self): return "woof!"
+class Cat:
+    def meow(self): return "meow!"
+class CatAdapter:
+    def __init__(self, cat): self._cat = cat
+    def bark(self): return self._cat.meow()
+
+animals = [Dog(), CatAdapter(Cat())]
+for animal in animals:
+    print(animal.bark())</code></pre></div>
+                <h3 class="text-2xl sm:text-3xl font-semibold">👀 Behavioral Pattern: Observer</h3><p>**Problem:** You have a one-to-many dependency between objects. When one object (the subject) changes state, you want all of its dependents (observers) to be notified and updated automatically.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>class Subject:
+    def __init__(self): self._observers = []
+    def attach(self, observer): self._observers.append(observer)
+    def notify(self, message):
+        for observer in self._observers: observer.update(message)
+class Observer:
+    def update(self, message): print(f"Got message: {message}")
+subject = Subject(); observer1 = Observer(); subject.attach(observer1); subject.notify("First update!")</code></pre></div>
+                <h3 class="text-2xl sm:text-3xl font-semibold">🎯 Behavioral Pattern: Strategy</h3><p>**Problem:** You have a family of algorithms, and you want to make them interchangeable. The Strategy pattern defines a family of algorithms, encapsulates each one, and lets the client choose which one to use at runtime.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>from abc import ABC, abstractmethod
+class SortStrategy(ABC):
+    @abstractmethod
+    def sort(self, dataset): pass
+class BubbleSort(SortStrategy):
+    def sort(self, dataset): print("Sorting with Bubble Sort"); return sorted(dataset)
+class QuickSort(SortStrategy):
+    def sort(self, dataset): print("Sorting with Quick Sort"); return sorted(dataset)
+class Sorter:
+    def __init__(self, strategy): self._strategy = strategy
+    def sort(self, dataset): return self._strategy.sort(dataset)
+data = [3, 1, 4, 1, 5, 9, 2, 6]
+sorter = Sorter(BubbleSort())
+sorter.sort(data)</code></pre></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const openSidebarBtn = document.getElementById('open-sidebar');
+        // FIX: Added a dedicated button for closing the sidebar
+        const closeSidebarBtn = document.getElementById('close-sidebar');
+        const sidebarToggles = document.querySelectorAll('.sidebar-toggle');
+        const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+        function openSidebar() {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        }
+
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+
+        // FIX: Simplified event listeners for separate open and close buttons
+        openSidebarBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openSidebar();
+        });
+
+        closeSidebarBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+        
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', closeSidebar);
+        });
+        
+        sidebarToggles.forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const submenu = toggle.nextElementSibling;
+                const icon = toggle.querySelector('svg');
+                if (submenu.style.maxHeight) {
+                    submenu.style.maxHeight = null;
+                    icon.style.transform = 'rotate(0deg)';
+                } else {
+                    submenu.style.maxHeight = submenu.scrollHeight + "px";
+                    icon.style.transform = 'rotate(180deg)';
+                } 
+            });
+        });
+
+        // Scroll Animation
+        const sections = document.querySelectorAll('.section');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    // observer.unobserve(entry.target); // Keep observing for re-animation if needed
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>

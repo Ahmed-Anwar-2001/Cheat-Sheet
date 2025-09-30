@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ultimate Guide to LangGraph</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #eef0f4;
+            --card-bg: #eef0f4;
+            --text-color: #334155;
+            --header-color: #1e293b;
+            --shadow-light: #ffffff;
+            --shadow-dark: #d1d9e6;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #10b981;
+            --accent-gradient: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .clay-card {
+            background-color: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 8px 8px 20px var(--shadow-dark), -8px -8px 20px var(--shadow-light);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        @media (hover: hover) {
+            .clay-card:hover {
+                transform: translateY(-10px);
+                box-shadow: 18px 18px 36px var(--shadow-dark), -12px -12px 36px var(--shadow-light);
+            }
+        }
+        
+        .clay-code {
+            background-color: #e2e5e9;
+            border-radius: 16px;
+            font-family: 'SF Mono', 'Courier New', Courier, monospace;
+            color: var(--header-color);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+            box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            padding: 4rem 1rem;
+        }
+
+        @media (min-width: 768px) { .section { padding: 6rem 2rem; } }
+
+        .section.visible { opacity: 1; transform: translateY(0); }
+        .section:last-child { border-bottom: none; }
+
+        .gradient-text {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .content-prose { max-width: 900px; line-height: 1.8; }
+        .content-prose h3 { margin-top: 3rem; margin-bottom: 1.5rem; font-weight: 700; }
+        .content-prose p { margin-bottom: 1.5rem; }
+        .content-prose ul.custom-list { list-style: none; padding-left: 0; }
+        .content-prose .custom-list li { position: relative; padding-left: 2rem; margin-bottom: 1rem; }
+        .content-prose .custom-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--accent-primary);
+            font-weight: 800;
+            font-size: 1.25rem;
+        }
+        
+        /* Sidebar Styles */
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+            background-color: var(--bg-color);
+        }
+        .sidebar-submenu { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out; }
+        @media (hover: hover) {
+            .sidebar-link:hover {
+                background: var(--accent-gradient);
+                color: white;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed top-0 left-0 z-50 h-screen w-72 shadow-[10px_0px_20px_var(--shadow-dark)] transform -translate-x-full overflow-y-auto">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold text-slate-800 mb-8">Navigation</h2>
+            <nav class="space-y-4">
+                <div>
+                    <button class="sidebar-toggle w-full text-left font-bold text-lg text-slate-700 flex justify-between items-center p-2 rounded-lg hover:bg-slate-200">
+                        <span>LangGraph Guide</span>
+                        <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="sidebar-submenu pl-4 mt-2">
+                        <ul class="space-y-1">
+                            <li><a href="#intro" class="sidebar-link block p-2 rounded-lg">Introduction</a></li>
+                            <li><a href="#why-langgraph" class="sidebar-link block p-2 rounded-lg">Real-World Scenarios</a></li>
+                            <li><a href="#alternatives" class="sidebar-link block p-2 rounded-lg">Pros, Cons & Alternatives</a></li>
+                            <li><a href="#research" class="sidebar-link block p-2 rounded-lg">Foundational Research</a></li>
+                            <li><a href="#core-concepts" class="sidebar-link block p-2 rounded-lg">Core Concepts</a></li>
+                            <li><a href="#state" class="sidebar-link block p-2 rounded-lg">1. The State</a></li>
+                            <li><a href="#nodes" class="sidebar-link block p-2 rounded-lg">2. Nodes</a></li>
+                            <li><a href="#edges" class="sidebar-link block p-2 rounded-lg">3. Edges</a></li>
+                            <li><a href="#multi-agent" class="sidebar-link block p-2 rounded-lg">Multi-Agent Systems</a></li>
+                            <li><a href="#knowledge-graphs" class="sidebar-link block p-2 rounded-lg">Knowledge Graphs</a></li>
+                            <li><a href="#compilation" class="sidebar-link block p-2 rounded-lg">Compilation & Streaming</a></li>
+                            <li><a href="#persistence" class="sidebar-link block p-2 rounded-lg">Persistence</a></li>
+                            <li><a href="#example" class="sidebar-link block p-2 rounded-lg">Example Use Case</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div><a href="../../OOP/oop.html" class="w-full text-left font-bold text-lg text-slate-700 flex justify-between items-center p-2 rounded-lg hover:bg-slate-200"><span>Python OOP Guide</span></a></div>
+                <div><a href="../main.html" class="w-full text-left font-bold text-lg text-slate-700 flex justify-between items-center p-2 rounded-lg hover:bg-slate-200"><span>AI Agents</span></a></div>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- Overlay for Sidebar -->
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <header class="sticky top-0 z-30 p-4 bg-white/70 backdrop-blur-xl border-b border-gray-200">
+        <div class="max-w-8xl mx-auto flex justify-between items-center">
+            <button id="open-sidebar" class="p-2 rounded-md hover:bg-gray-200"><svg class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+            <h1 class="text-xl font-bold text-slate-800 text-center flex-grow gradient-text">LangGraph</h1>
+            <div class="w-8"></div>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <!-- Section 1: Introduction -->
+        <section id="intro" class="section text-center">
+            <div class="max-w-5xl mx-auto">
+                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-slate-800 mb-6">Mastering <span class="gradient-text">LangGraph</span></h1>
+                <p class="text-lg sm:text-xl md:text-2xl text-slate-600 mb-10">Building Stateful, Cyclical, and Multi-Actor Applications with LLMs</p>
+                <div class="clay-card p-8 text-left content-prose">
+                    <h3>What is LangGraph?</h3>
+                    <p><strong>LangGraph</strong> is a library for building robust, stateful applications with Large Language Models (LLMs). It extends the popular LangChain library, specifically its Expression Language (LCEL), by providing a way to create cyclical graphs. While LCEL is excellent for composing chains (which are Directed Acyclic Graphs, or DAGs), many sophisticated AI applications require **cycles and loops** to perform complex reasoning, self-correction, and dynamic tool use. This is the problem LangGraph solves.</p>
+                    <p>Think of it this way: LangChain helps you build a one-way assembly line for your AI. LangGraph allows you to build a full-fledged workshop, where the AI can move between stations, revisit previous work, and decide its own path until the job is done perfectly. It achieves this by modeling computation as a **state machine**, a powerful computer science concept that is perfect for agentic behavior.</p>
+                </div>
+                 <div class="mt-12 w-full max-w-4xl">
+                    <h3 class="text-2xl font-bold text-center mb-6">LangChain (DAG) vs. LangGraph (Cyclical Graph)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div class="clay-card p-6">
+                            <h4 class="font-semibold text-lg text-center mb-4">LangChain Expression Language (LCEL)</h4>
+                            <svg viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg"><defs><marker id="arrow-dag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"/></marker></defs><style>.node-dag{fill:#DBEAFE;stroke:#60A5FA;}.edge-dag{stroke:#3b82f6;marker-end:url(#arrow-dag);}.label{font-size:12px;font-family:Inter;text-anchor:middle;fill:#1E293B;}</style><circle cx="50" cy="75" r="20" class="node-dag"/><text x="50" y="80" class="label">A</text><circle cx="150" cy="75" r="20" class="node-dag"/><text x="150" y="80" class="label">B</text><circle cx="250" cy="75" r="20" class="node-dag"/><text x="250" y="80" class="label">C</text><line x1="70" y1="75" x2="130" y2="75" class="edge-dag"/><line x1="170" y1="75" x2="230" y2="75" class="edge-dag"/><text x="150" y="20" class="label font-semibold">Linear, One-Way Flow</text></svg>
+                            <p class="text-sm text-slate-600 mt-4 text-center">Data flows in one direction. Excellent for simple pipelines, but cannot loop back.</p>
+                        </div>
+                        <div class="clay-card p-6">
+                            <h4 class="font-semibold text-lg text-center mb-4">LangGraph</h4>
+                            <svg viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg"><defs><marker id="arrow-graph" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981"/></marker></defs><style>.node-graph{fill:#D1FAE5;stroke:#34D399;}.edge-graph{stroke:#10b981;marker-end:url(#arrow-graph);}.label{font-size:12px;font-family:Inter;text-anchor:middle;fill:#1E293B;}</style><circle cx="50" cy="75" r="20" class="node-graph"/><text x="50" y="80" class="label">A</text><circle cx="150" cy="75" r="20" class="node-graph"/><text x="150" y="80" class="label">B</text><circle cx="250" cy="75" r="20" class="node-graph"/><text x="250" y="80" class="label">C</text><line x1="70" y1="75" x2="130" y2="75" class="edge-graph"/><path d="M 170 75 q 40 40 80 0" class="edge-graph" fill="none"/><path d="M 230 75 q -40 -40 -80 0" class="edge-graph" fill="none"/><text x="150" y="20" class="label font-semibold">Cyclical & Conditional Flow</text></svg>
+                            <p class="text-sm text-slate-600 mt-4 text-center">Flow can be directed based on logic, allowing for loops, reflection, and retries.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Why & When to Use It -->
+        <section id="why-langgraph" class="section">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-center mb-16">Real-World Scenarios for LangGraph</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="clay-card p-8 flex flex-col items-center text-center"><svg class="w-16 h-16 mb-4" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#10b981"/></linearGradient></defs><g fill="url(#g1)"><path d="M49.8 29.4c-1.1-1.1-2.9-1.1-4 0l-14 14-6.8-6.8c-1.1-1.1-2.9-1.1-4 0-1.1 1.1-1.1 2.9 0 4l8.8 8.8c.5.5 1.2.8 1.9.8s1.4-.3 1.9-.8l16-16c1.2-1.1 1.2-2.9.1-4z"/><path d="M32 0C14.3 0 0 14.3 0 32s14.3 32 32 32 32-14.3 32-32S49.7 0 32 0zm0 58C17.7 58 6 46.3 6 32S17.7 6 32 6s26 11.7 26 26-11.7 26-26 26z"/></g></svg><h3 class="text-xl font-bold mb-2">Agentic Reasoning Loops</h3><p class="text-slate-600">For agents that need to perform tasks like "reflect and critique" or "plan and execute". These workflows are inherently cyclical and require a state to be maintained across multiple LLM calls.</p></div>
+                    <div class="clay-card p-8 flex flex-col items-center text-center"><svg class="w-16 h-16 mb-4" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8B5CF6"/><stop offset="100%" stop-color="#D946EF"/></linearGradient></defs><g fill="url(#g2)"><path d="M50 42h-6v-4h6v4zm-8-22h-4v4h4v-4zm-20 0h-4v4h4v-4zm20 8h-4v4h4v-4zm-8 8h-4v4h4v-4zm-12 0h-4v4h4v-4zm-4 8h-4v4h4v-4zm28-16h-4v4h4v-4zm8-8h-4v4h4v-4z"/><path d="M54 6H10C7.8 6 6 7.8 6 10v44c0 2.2 1.8 4 4 4h44c2.2 0 4-1.8 4-4V10c0-2.2-1.8-4-4-4zM26 52h-8v-8h8v8zm0-12h-8v-8h8v8zm0-12h-8v-8h8v8zm12 24h-8v-8h8v8zm0-12h-8v-8h8v8zm0-12h-8v-8h8v8zm12 24h-8v-8h8v8zm0-12h-8v-8h8v8zm0-12h-8v-8h8v8z"/></g></svg><h3 class="text-xl font-bold mb-2">Dynamic Tool Use</h3><p class="text-slate-600">When an agent needs to decide which tool to use from a set, execute it, observe the result, and then decide its next step. This often involves loops until a final answer is found.</p></div>
+                    <div class="clay-card p-8 flex flex-col items-center text-center"><svg class="w-16 h-16 mb-4" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#10B981"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient></defs><g fill="url(#g3)"><path d="M44.4 46.4c-2.3 0-4.1-1.8-4.1-4.1V28.1c0-2.3 1.8-4.1 4.1-4.1s4.1 1.8 4.1 4.1v14.2c0 2.2-1.9 4.1-4.1 4.1z"/><path d="M29.1 46.4c-2.3 0-4.1-1.8-4.1-4.1V33.2c0-2.3 1.8-4.1 4.1-4.1s4.1 1.8 4.1 4.1v9.1c0 2.2-1.9 4.1-4.1 4.1z"/><path d="M13.8 46.4c-2.3 0-4.1-1.8-4.1-4.1V38.1c0-2.3 1.8-4.1 4.1-4.1s4.1 1.8 4.1 4.1v4.2c0 2.2-1.9 4.1-4.1 4.1z"/><path d="M58 6H6C4.9 6 4 6.9 4 8v48c0 1.1.9 2 2 2h52c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM19.6 20.3c-2.4 0-4.3-1.9-4.3-4.3s1.9-4.3 4.3-4.3 4.3 1.9 4.3 4.3-2 4.3-4.3 4.3z"/></g></svg><h3 class="text-xl font-bold mb-2">Human-in-the-Loop</h3><p class="text-slate-600">For workflows that require human supervision or input. A graph can pause execution, wait for user feedback, and then resume its process based on the input provided.</p></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="alternatives" class="section"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-12">Pros, Cons, & Alternatives</h2><p>LangGraph is powerful, but it's important to understand its trade-offs and how it compares to other multi-agent frameworks.</p><h3>Pros & Cons</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-8"><ul class="custom-list"><li><strong class="font-semibold text-green-600">Pro: Explicit Control.</strong> You define the exact flow of logic, which makes agents more reliable and predictable than purely autonomous ones.</li><li><strong class="font-semibold text-green-600">Pro: Built on LCEL.</strong> Seamlessly integrates with the entire LangChain ecosystem of tools, models, and retrievers.</li><li><strong class="font-semibold text-green-600">Pro: Persistence.</strong> Built-in checkpointing makes it easy to save and resume long-running agent tasks.</li></ul><ul class="custom-list"><li><strong class="font-semibold text-red-600">Con: More Boilerplate.</strong> Requires you to explicitly define every state, node, and edge, which can be more verbose than higher-level frameworks.</li><li><strong class="font-semibold text-red-600">Con: Steeper Learning Curve.</strong> The state machine paradigm can be less intuitive for beginners compared to simple agent loops.</li></ul></div><h3 class="mt-12">Comparison with Other Frameworks</h3><table class="w-full text-left border-collapse my-4 text-sm"><thead><tr><th class="border-b-2 p-2">Framework</th><th class="border-b-2 p-2">Primary Abstraction</th><th class="border-b-2 p-2">Best For</th></tr></thead><tbody><tr><td class="border-b p-2"><strong>LangGraph</strong></td><td class="border-b p-2">State Machine / Graph</td><td class="border-b p-2">Reliable, controllable agents with explicit, cyclical logic.</td></tr><tr><td class="border-b p-2"><strong>Autogen</strong></td><td class="border-b p-2">Conversable Agents</td><td class="border-b p-2">Simulating complex conversations between multiple agents that decide who speaks next.</td></tr><tr><td class="border-b p-2"><strong>CrewAI</strong></td><td class="border-b p-2">Tasks & Crews</td><td class="border-b p-2">High-level, role-based agent collaboration with a focus on process-oriented workflows (e.g., research team).</td></tr></tbody></table></div></section>
+
+        <section id="research" class="section"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-12">Foundational Research</h2><p>LangGraph stands on the shoulders of giants. The concepts of agentic reasoning, tool use, and stateful processing are rooted in influential academic research. Understanding these papers provides deep insight into *why* frameworks like LangGraph are designed the way they are.</p><ul class="custom-list"><li><strong>Chain-of-Thought Prompting (Wei et al., 2022):</strong> This paper showed that prompting LLMs to "think step-by-step" dramatically improves their reasoning on complex tasks. LangGraph nodes formalize these steps.</li><li><strong>ReAct: Synergizing Reasoning and Acting (Yao et al., 2022):</strong> The foundational "Reason-Act" framework. It proposes that agents should interleave reasoning (thinking about what to do) and acting (using tools). LangGraph's cycles are a perfect implementation of this loop.</li><li><strong>Toolformer (Schick et al., 2023):</strong> This work demonstrated how to teach LLMs to decide which tools to call, when to call them, and what arguments to pass. LangGraph's conditional edges and nodes are the mechanisms for implementing this tool-using logic.</li></ul></div></section>
+
+        <!-- The rest of the sections follow this detailed, responsive pattern -->
+        <section id="core-concepts" class="section"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-12">Core Concepts Explained</h2><p>LangGraph introduces a few key abstractions to model cyclical computation. Understanding these four components is essential to building with the library. The entire process revolves around defining a state, nodes that operate on that state, and edges that direct the flow between nodes.</p><div class="w-full clay-card-inset p-6 my-8"><svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" class="w-full"><defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7280" /></marker></defs><rect x="150" y="10" width="100" height="50" rx="10" fill="#e0e7ff" stroke="#a5b4fc"/><text x="200" y="40" font-family="Inter, sans-serif" font-size="12" text-anchor="middle" fill="#1e293b">Graph State</text><rect x="50" y="100" width="80" height="40" rx="10" fill="#d1fae5" stroke="#6ee7b7"/><text x="90" y="125" font-family="Inter, sans-serif" font-size="12" text-anchor="middle" fill="#065f46">Node A</text><rect x="270" y="100" width="80" height="40" rx="10" fill="#d1fae5" stroke="#6ee7b7"/><text x="310" y="125" font-family="Inter, sans-serif" font-size="12" text-anchor="middle" fill="#065f46">Node B</text><path d="M 200 60 V 90" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrow)" /><line x1="130" y1="120" x2="270" y2="120" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrow)" /><text x="200" y="80" font-family="Inter, sans-serif" font-size="10" fill="#4b5563">State passed to nodes</text><text x="200" y="145" font-family="Inter, sans-serif" font-size="10" fill="#4b5563">Edges direct flow</text></svg></div><ul class="custom-list"><li><strong class="font-semibold text-indigo-700">State:</strong> A shared object that is passed between all nodes. It's the memory of your application, defining the schema for all data that moves through the graph.</li><li><strong class="font-semibold text-indigo-700">Nodes:</strong> The "workers" of the graph. Each node is a function or LCEL runnable that performs a specific task and modifies the state.</li><li><strong class="font-semibold text-indigo-700">Edges:</strong> The connections between nodes. They define the direction of flow and can be conditional, allowing for complex, cyclical logic based on the current state.</li><li><strong class="font-semibold text-indigo-700">Compilation:</strong> The final step of turning your graph definition into a runnable object that can be invoked or streamed.</li></ul></div></section>
+        <section id="state" class="section"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">1. The State: Your Agent's Memory</h2><p>The state is the most critical concept in LangGraph. It is a single, persistent object that is passed from node to node. Each node can read from the state and update it. Think of it as the agent's "scratchpad" or short-term memory.</p><p>The state can be any Python object, but it's most commonly defined using a `TypedDict` for clarity and type safety. Each field in the `TypedDict` represents a piece of information the agent can track. By default, when a node returns a dictionary, LangGraph **updates** the state with the new values. However, you can use `Annotated` to specify different update logic, like appending to a list instead of overwriting it.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>from typing import TypedDict, List, Annotated
+import operator
+
+# Using Annotated and operator.add allows us to accumulate messages
+# instead of overwriting them at each step.
+class AgentState(TypedDict):
+    messages: Annotated[List[str], operator.add]
+    iterations: int</code></pre></div></div></section>
+        <section id="nodes" class="section"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">2. Nodes: The Workers</h2><p>Nodes are the fundamental units of work in a LangGraph graph. A node can be any Python function or an LCEL runnable (like a LangChain chain). Each node receives the current `State` object as its input.</p><p>The node performs its task (e.g., calling an API, querying a database, prompting an LLM) and returns a dictionary. The keys of this dictionary must correspond to keys in the `AgentState`. LangGraph then automatically updates the state with the values from the returned dictionary.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code># This is a node. It's a simple Python function.
+def my_first_node(state: AgentState):
+    print("---EXECUTING MY FIRST NODE---")
+    current_question = state.get("question", "")
+    new_generation = f"The answer to '{current_question}' is 42."
+    return {"generation": new_generation}
+</code></pre></div></div></section>
+        <section id="edges" class="section"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">3. Edges: Directing the Flow</h2><p>Edges connect nodes and define the path of execution. LangGraph provides different types of edges to create both simple and complex, logic-driven flows.</p><h3 class="text-2xl sm:text-3xl font-semibold">The Entry Point</h3><p>Every graph needs a starting point. The `set_entry_point()` method declares which node will be executed first.</p><h3 class="text-2xl sm:text-3xl font-semibold">Standard Edges</h3><p>A standard edge, created with `add_edge()`, defines a simple, unconditional connection. It dictates that after one node finishes, another specific node should always run next.</p><h3 class="text-2xl sm:text-3xl font-semibold">Conditional Edges: The Key to Agentic Behavior</h3><p>This is where LangGraph's true power lies. A conditional edge, created with `add_conditional_edges()`, directs the flow to different nodes based on the current state. It requires a "router" function that inspects the state and returns the name of the *next* node to execute.</p><div class="w-full clay-card-inset p-6 my-8"><svg viewBox="0 0 500 250" xmlns="http://www.w3.org/2000/svg" class="w-full"><defs><marker id="arrow2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7280" /></marker></defs><style>.label{font-family:Inter,sans-serif;font-size:12px;text-anchor:middle;fill:#1e293b}.node{fill:#e0e7ff;stroke:#a5b4fc;stroke-width:1.5}.edge{stroke:#6b7280;stroke-width:1.5;marker-end:url(#arrow2);fill:none}</style><rect x="50" y="100" width="100" height="50" rx="10" class="node"/><text x="100" y="130" class="label">Grader Node</text><rect x="200" y="20" width="100" height="50" rx="10" class="node"/><text x="250" y="50" class="label">Generate Node</text><rect x="200" y="180" width="100" height="50" rx="10" class="node"/><text x="250" y="210" class="label">Rewrite Node</text><path d="M150,125 C180,125 180,50 200,50" class="edge"/><path d="M150,125 C180,125 180,205 200,205" class="edge"/><text x="175" y="30" class="label" font-size="10" fill="#16a34a">Documents OK</text><text x="175" y="230" class="label" font-size="10" fill="#dc2626">Documents NOT OK</text><text x="100" y="80" class="label" font-size="10">Router Function Decides Path</text></svg></div><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>def my_router_function(state: AgentState):
+    print("---ROUTING---")
+    if state.get("documents_are_good"):
+        return "generate_node"
+    else:
+        return "rewrite_node"
+</code></pre></div></div></section>
+        <section id="multi-agent" class="section"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">Multi-Agent Systems</h2><p>LangGraph is not limited to single agents. Its graph structure is perfect for orchestrating collaboration between multiple, specialized agents. You can create a "team" of agents where each agent is a node (or a subgraph itself) and a "supervisor" agent acts as the router, directing tasks to the appropriate specialist based on the shared state.</p><div class="w-full clay-card-inset p-6 my-8"><svg viewBox="0 0 500 250" xmlns="http://www.w3.org/2000/svg" class="w-full"><defs><marker id="arrow3" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"/></marker></defs><style>.label{font-family:Inter,sans-serif;font-size:12px;text-anchor:middle;fill:#1e293b}.node{fill:#e0e7ff;stroke:#a5b4fc;stroke-width:1.5}.supervisor{fill:#fbcfe8;stroke:#ec4899;stroke-width:1.5}.edge{stroke:#3b82f6;stroke-width:1.5;marker-end:url(#arrow3);fill:none}</style><rect x="200" y="20" width="100" height="50" rx="25" class="supervisor"/><text x="250" y="50" class="label">Supervisor</text><rect x="50" y="150" width="100" height="50" rx="10" class="node"/><text x="100" y="180" class="label">Researcher Agent</text><rect x="350" y="150" width="100" height="50" rx="10" class="node"/><text x="400" y="180" class="label">Writer Agent</text><path d="M250,70 V 130" class="edge"/><path d="M250,130 H 125 C 115 130, 115 150, 100 150" class="edge"/><path d="M250,130 H 375 C 385 130, 385 150, 400 150" class="edge"/><path d="M100,200 C 115 220, 185 220, 200 180 V 70" class="edge" stroke-dasharray="4"/><path d="M400,200 C 385 220, 315 220, 300 180 V 70" class="edge" stroke-dasharray="4"/><text x="250" y="110" class="label" font-size="10">Delegates Task</text><text x="250" y="230" class="label" font-size="10">Agents Return Results</text></svg></div><p>This architecture allows for complex problem decomposition. For instance, a "research team" might consist of a supervisor, a web researcher agent, and a data analyst agent. The supervisor receives a query, delegates the web search to the researcher, passes the results to the analyst for processing, and then synthesizes the final report.</p></div></section>
+        <section id="knowledge-graphs" class="section"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">Powering Agents with Knowledge Graphs</h2><p>While LangGraph provides the control flow for an agent, a truly intelligent agent needs a reliable, structured memory. This is where **Knowledge Graphs** and **Graph Databases** like Neo4j come in. They can act as a powerful, queryable "brain" for your LangGraph agents.</p><h3 class="text-2xl sm:text-3xl font-semibold">What is a Knowledge Graph?</h3><p>A knowledge graph stores information as a network of entities (nodes) and their relationships (edges). Instead of unstructured text, it captures facts in a machine-readable way. For example: `(Person: "Elon Musk") -[FOUNDED]-> (Company: "SpaceX")`.</p><h3 class="text-2xl sm:text-3xl font-semibold">Neo4j and Cypher</h3><p>**Neo4j** is the most popular graph database. You interact with it using **Cypher**, a declarative query language designed for graphs. It's like SQL, but for graph patterns.</p><h3 class="text-2xl sm:text-3xl font-semibold">Connecting LangGraph to Neo4j</h3><p>You can create a LangGraph node that acts as a tool for querying your Neo4j database. The agent can construct a Cypher query, execute it via the node, and get back structured data to inform its next steps.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code># This is a conceptual example of a Neo4j node
+from neo4j import GraphDatabase
+class Neo4jToolNode:
+    def __init__(self, uri, user, password):
+        self._driver = GraphDatabase.driver(uri, auth=(user, password))
+    def query_graph(self, state):
+        with self._driver.session() as session:
+            result = session.run(state["cypher_query"])
+            return {"query_result": [str(r.data()) for r in result]}
+</code></pre></div></div></section>
+        <section id="compilation" class="section"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">Compilation & Streaming</h2><p>Defining the state, nodes, and edges only creates a blueprint of your application. To make it executable, you must **compile** the graph. The `compile()` method returns a `CompiledGraph` object. This object is a standard LCEL runnable, meaning you can interact with it using methods like `invoke()`, `batch()`, and, most usefully for agents, `stream()`.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code># app = workflow.compile()
+# for step in app.stream(initial_state):
+#     print(step)
+</code></pre></div></div></section>
+        <section id="persistence" class="section"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">Persistence with Checkpoints</h2><p>For long-running or interactive agents, you need a way to save and resume their state. LangGraph provides **checkpointers** for this. A checkpointer automatically saves the state after each step. You can then resume the graph from any saved state by passing its configuration to the `stream` or `invoke` call.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>from langgraph.checkpoint.sqlite import SqliteSaver
+
+# In-memory SQLite DB for the example
+memory_saver = SqliteSaver.from_conn_string(":memory:")
+
+# When compiling, pass the checkpointer
+# app = workflow.compile(checkpointer=memory_saver)
+
+# To run and save state for a new conversation thread
+# config = {"configurable": {"thread_id": "user-123"}}
+# for step in app.stream(initial_state, config):
+#     print(step)
+
+# To resume the same conversation later
+# for step in app.stream(None, config):
+#     print(step)
+</code></pre></div></div></section>
+        <section id="example" class="section"><div class="clay-card p-6 md:p-12 content-prose"><h2 class="text-3xl sm:text-4xl font-bold text-center mb-8">Example Use Case: Self-Correcting RAG Agent</h2><p>Let's build a complete agent that performs Retrieval-Augmented Generation. This agent will retrieve documents, grade their relevance, and decide whether to generate an answer or rewrite the question for better results. This cyclical process is a perfect use case for LangGraph.</p><div class="clay-code p-4 sm:p-6 my-4 text-sm overflow-x-auto"><pre><code>from typing import TypedDict, List
+from langgraph.graph import StateGraph, END
+class AgentRAGState(TypedDict):
+    question: str
+    documents: List[str]
+    generation: str
+    iterations: int
+
+def retrieve(state: AgentRAGState):
+    print("---NODE: RETRIEVE---")
+    retrieved_docs = [f"Doc about {state['question']}", "An irrelevant doc."]
+    return {"documents": retrieved_docs, "iterations": state.get("iterations", 0) + 1}
+
+def grade_documents(state: AgentRAGState):
+    print("---NODE: GRADE DOCUMENTS---")
+    if "rewrite" in state['question'].lower():
+        print("Grading: Documents are NOT relevant.")
+        return {"documents_are_good": False}
+    else:
+        print("Grading: Documents are relevant.")
+        return {"documents_are_good": True}
+    
+def generate(state: AgentRAGState):
+    print("---NODE: GENERATE---")
+    generation = f"The answer, based on the documents, is..."
+    return {"generation": generation}
+
+def rewrite_question(state: AgentRAGState):
+    print("---NODE: REWRITE QUESTION---")
+    new_question = f"rewrite: {state['question']}"
+    return {"question": new_question}
+
+def decide_to_generate(state: AgentRAGState):
+    print("---ROUTER: DECIDE TO GENERATE---")
+    if state.get("documents_are_good"):
+        if state.get("iterations", 0) > 3:
+            return "end"
+        return "generate"
+    else:
+        return "rewrite"
+
+workflow = StateGraph(AgentRAGState)
+workflow.add_node("retrieve", retrieve)
+workflow.add_node("grade_documents", grade_documents)
+workflow.add_node("generate", generate)
+workflow.add_node("rewrite_question", rewrite_question)
+workflow.set_entry_point("retrieve")
+workflow.add_edge("retrieve", "grade_documents")
+workflow.add_conditional_edges("grade_documents", decide_to_generate, {"generate": "generate", "rewrite": "rewrite_question", "end": END})
+workflow.add_edge("generate", END)
+workflow.add_edge("rewrite_question", "retrieve")
+app = workflow.compile()
+
+inputs = {"question": "What is LangGraph?"}
+for output in app.stream(inputs):
+    for key, value in output.items():
+        print(f"Node: {key}\nState after node: {value}\n---")</code></pre></div></div></section>
+    </main>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const openSidebarBtn = document.getElementById('open-sidebar');
+        const sidebarToggles = document.querySelectorAll('.sidebar-toggle');
+        const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+        function openSidebar() { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); }
+        function closeSidebar() { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); }
+
+        openSidebarBtn.addEventListener('click', (e) => { e.stopPropagation(); openSidebar(); });
+        overlay.addEventListener('click', closeSidebar);
+        sidebarLinks.forEach(link => { link.addEventListener('click', closeSidebar); });
+        
+        sidebarToggles.forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const submenu = toggle.nextElementSibling;
+                const icon = toggle.querySelector('svg');
+                if (submenu.style.maxHeight) {
+                    submenu.style.maxHeight = null;
+                    icon.style.transform = 'rotate(0deg)';
+                } else {
+                    submenu.style.maxHeight = submenu.scrollHeight + "px";
+                    icon.style.transform = 'rotate(180deg)';
+                } 
+            });
+        });
+
+        const sections = document.querySelectorAll('.section');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) { entry.target.classList.add('visible'); }
+            });
+        }, { threshold: 0.1 });
+        sections.forEach(section => { observer.observe(section); });
+    </script>
+</body>
+</html>
+
